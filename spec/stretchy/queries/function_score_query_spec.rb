@@ -65,24 +65,40 @@ describe Stretchy::Queries::FunctionScoreQuery do
     end
   end
 
-  it 'raises errors for invalid score mode' do
-    expect{subject.new(score_mode: 'wat')}.to raise_error
-  end
+  context 'raises errors for' do
 
-  it 'raises errors for invalid boost mode' do
-    expect{subject.new(boost_mode: 'wat')}.to raise_error
-  end
+    it 'invalid score mode' do
+      expect{subject.new(score_mode: 'wat')}.to raise_error
+    end
 
-  it 'raises errors for invalid boost' do
-    expect{subject.new(boost: 'wat')}.to raise_error
-  end
+    it 'invalid boost mode' do
+      expect{subject.new(boost_mode: 'wat')}.to raise_error
+    end
 
-  it 'raises errors for invalid max boost' do
-    expect{subject.new(max_boost: 'wat')}.to raise_error
-  end
+    it 'invalid boost' do
+      expect{subject.new(boost: 'wat')}.to raise_error
+    end
 
-  it 'raises errors for invalid min score' do
-    expect{subject.new(min_score: 'wat')}.to raise_error
+    it 'invalid max boost' do
+      expect{subject.new(max_boost: 'wat')}.to raise_error
+    end
+
+    it 'invalid min score' do
+      expect{subject.new(min_score: 'wat')}.to raise_error
+    end
+
+    xit 'invalid query' do
+      expect{subject.new(query: 'wat')}.to raise_error
+    end
+
+    xit 'invalid filter' do
+      expect{subject.new(filter: 'wat')}.to raise_error
+    end
+
+    xit 'invalid functions' do
+      expect{subject.new(functions: [filter_boost, 'wat'])}.to raise_error
+    end
+
   end
 
 end
