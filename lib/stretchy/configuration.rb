@@ -30,39 +30,7 @@ module Stretchy
     def client(options = {})
       return @client if @client
 
-      @client = Elasticsearch::Client.new(default_opts.merge(options))
-    end
-
-    # used for ensuring a concistent index in specs
-    def refresh
-      client.indices.refresh index: INDEX
-    end
-
-    def count
-      client.cat.count(index: INDEX).split(' ')[2].to_i
-    end
-
-    def search(type:, body:, fields: nil)
-      options = { index: index_name, type: type, body: body }
-      options[:fields] = fields if fields.is_a?(Array)
-
-      client.search(options)
-    end
-
-    def index(type:, body:, id: nil)
-      id ||= body['id'] || body['_id'] || body[:id] || body[:_id]
-      client.index(index: index_name, type: type, id: id, body: body)
-    end
-
-    def bulk(type:, documents:)
-      requests = documents.flat_map do |document|
-        id = document['id'] || document['_id'] || document[:id] || document[:_id]
-        [
-          { index: { '_index' => index_name, '_type' => type, '_id' => id } },
-          document
-        ]
-      end
-      client.bulk body: requests
+      @client = Elasticsearch::Client.new(client_options.merge(options))
     end
   end
 end

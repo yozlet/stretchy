@@ -1,0 +1,29 @@
+{
+  "id" : 2,
+  "name" : "Goichi Suda",
+  "title" : "Game Artiste",
+  "company" : "Suda51",
+  "salary" : 300000,
+  "games" : [
+    {
+      "id" : 5,
+      "title" : "Killer7",
+      "platforms" : ["GameCube"]
+    },
+    {
+      "id" : 6,
+      "title" : "No More Heroes",
+      "platforms" : ["GameCube"]
+    },
+    {
+      "id" : 7,
+      "title" : "Shadows of the Damned",
+      "platforms" : ["Xbox 360", "PlayStation 3"]
+    }
+  ],
+  "location" : "Tokyo, Japan",
+  "coords" : {
+    "lat" : 35.6833,
+    "lon" : 139.6833
+  }
+}

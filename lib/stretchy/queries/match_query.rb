@@ -1,4 +1,4 @@
-module Search
+module Stretchy
   module Queries
     class MatchQuery
 

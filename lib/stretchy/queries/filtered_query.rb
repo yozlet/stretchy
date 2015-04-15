@@ -1,4 +1,4 @@
-module Search
+module Stretchy
   module Queries
     class FilteredQuery
 
@@ -9,8 +9,8 @@ module Search
 
       def to_search
         json = {}
-        json[:query]  = @query.to_search  if @query.present?
-        json[:filter] = @filter.to_search if @filter.present?
+        json[:query]  = @query.to_search  if @query
+        json[:filter] = @filter.to_search if @filter
         { filtered: json }
       end
     end

@@ -1,4 +1,4 @@
-module Search
+module Stretchy
   module Filters
     class BoolFilter
       def initialize(must:, must_not:, should: nil)
@@ -9,9 +9,9 @@ module Search
 
       def to_search
         json = {}
-        json[:must]     = @must.map(&:to_search) if @must.present?
-        json[:must_not] = @must_not.map(&:to_search) if @must_not.present?
-        json[:should]   = @should.map(&:to_search) if @should.present?
+        json[:must]     = @must.map(&:to_search)      if @must
+        json[:must_not] = @must_not.map(&:to_search)  if @must_not
+        json[:should]   = @should.map(&:to_search)    if @should
         { bool: json }
       end
     end

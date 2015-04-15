@@ -1,0 +1,29 @@
+{
+  "id" : 3,
+  "name" : "Tetsuya Mizuguchi",
+  "title" : "Game Musician",
+  "company" : "United Game Artists",
+  "salary" : 450000,
+  "games" : [
+    {
+      "id" : 8,
+      "title" : "Rez",
+      "platforms" : ["Dreamcast"]
+    },
+    {
+      "id" : 9,
+      "title" : "Lumines",
+      "platforms" : ["PlayStation Portable", "PlayStation 3", "Xbox 360", "iOS"]
+    },
+    {
+      "id" : 10,
+      "title" : "Child of Eden",
+      "platforms" : ["Xbox 360", "PlayStation 3"]
+    }
+  ],
+  "location" : "Sendai, Japan",
+  "coords" : {
+    "lat" : 38.2667,
+    "lon" : 140.8667
+  }
+}

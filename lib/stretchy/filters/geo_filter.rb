@@ -1,4 +1,4 @@
-module Search
+module Stretchy
   module Filters
     class GeoFilter
       def initialize(field: 'coords', distance: '50km', lat:, lng:)

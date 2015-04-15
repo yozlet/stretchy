@@ -1,4 +1,4 @@
-module Search
+module Stretchy
   module Queries
     class FunctionScoreQuery
 
@@ -19,27 +19,27 @@ module Search
       end
 
       def validate
-        if @query.present? && @filter.present?
+        if @query && @filter
           raise ArgumentError.new("Cannot have both query and filter -- combine using a FilteredQuery")
         end
 
-        if @boost.present? && !@boost.is_a?(Numeric)
+        if @boost && !@boost.is_a?(Numeric)
           raise ArgumentError.new("Boost must be a number - it is the global boost for the whole query")
         end
 
-        if @max_boost.present? && !@max_boost.is_a?(Numeric)
+        if @max_boost && !@max_boost.is_a?(Numeric)
           raise ArgumentError.new("Max boost must be a number")
         end
 
-        if @min_score.present? && !@min_score.is_a?(Numeric)
+        if @min_score && !@min_score.is_a?(Numeric)
           raise ArgumentError.new("min_score must be a number - it is the global boost for the whole query")
         end
 
-        if @score_mode.present? && !SCORE_MODES.include?(@score_mode)
+        if @score_mode && !SCORE_MODES.include?(@score_mode)
           raise ArgumentError.new("Score mode must be one of #{SCORE_MODES.join(', ')}")
         end
 
-        if @boost_mode.present? && !BOOST_MODES.include?(@boost_mode)
+        if @boost_mode && !BOOST_MODES.include?(@boost_mode)
           raise ArgumentError.new("Score mode must be one of #{BOOST_MODES.join(', ')}")
         end
       end
@@ -51,7 +51,7 @@ module Search
 
         self.class.attributes.reduce(json) do |body, field|
           ivar = instance_variable_get("@#{field}")
-          body[field] = ivar if ivar.present?
+          body[field] = ivar if ivar
           body
         end
 

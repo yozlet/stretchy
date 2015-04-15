@@ -1,11 +1,14 @@
-require "stretchy/version"
-require "logger"
-require "excon"
-require "elasticsearch"
+require 'json'
+require 'logger'
+require 'excon'
+require 'elasticsearch'
 
-Gem.find_files("stretchy/**/*.rb").each { |path| require path }
+Dir[File.join(File.dirname(__FILE__), 'stretchy', '**', '*.rb')].each do |path|
+  require path
+end
 
 module Stretchy
   extend Configuration
+  extend ClientActions
 
 end

@@ -1,4 +1,4 @@
-module Search
+module Stretchy
   module Queries
     class MatchAllQuery
       def to_search

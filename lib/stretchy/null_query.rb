@@ -1,4 +1,4 @@
-module Search
+module Stretchy
   class NullQuery
     def initialize(options = {})
     end

@@ -1,4 +1,4 @@
-module Search
+module Stretchy
   module Filters
     class RangeFilter
       def initialize(field:, min:, max:)
@@ -9,8 +9,8 @@ module Search
 
       def to_search
         range = {}
-        range[:gte] = @min if @min.present?
-        range[:lte] = @max if @max.present?
+        range[:gte] = @min if @min
+        range[:lte] = @max if @max
         {
           range: {
             @field => range

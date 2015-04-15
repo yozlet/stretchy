@@ -1,24 +1,21 @@
-module Search
+module Stretchy
   class Query
 
     DEFAULT_LIMIT = 40
 
     def initialize(options = {})
-      options = options.with_indifferent_access
       @offset       = options[:offset]      || 0
       @limit        = options[:limit]       || DEFAULT_LIMIT
       @match        = options[:match]
       @filters      = options[:filters]
       @not_filters  = options[:not_filters]
       @boosts       = options[:boosts]
-      @type         = options[:type]        || Developer::SEARCH_TYPE
-      @index        = options[:index]       || Search::INDEX
+      @type         = options[:type]        || 'documents'
+      @index        = options[:index]       || Stretchy.index_name
       @explain      = options[:explain]
     end
 
     def clone_with(options)
-      options = options.with_indifferent_access
-
       filters     = [@filters, options[:filters], options[:filter]].flatten.compact
       not_filters = [@not_filters, options[:not_filters], options[:not_filter]].flatten.compact
       boosts      = [@boosts, options[:boosts], options[:boost]].flatten.compact
@@ -27,9 +24,9 @@ module Search
         type:         @type,
         index:        @index,
         explain:      options[:explain] || @explain,
-        offset:       options[:offset] || @offset,
-        limit:        options[:limit]  || @limit,
-        match:        options[:match]  || @match,
+        offset:       options[:offset]  || @offset,
+        limit:        options[:limit]   || @limit,
+        match:        options[:match]   || @match,
         filters:      filters,
         not_filters:  not_filters,
         boosts:       boosts
@@ -49,20 +46,20 @@ module Search
     end
 
     def where(options = {})
-      return self unless options.present?
+      return self if options.empty?
       filters, not_filters = where_clause(options)
       clone_with(filters: filters, not_filters: not_filters)
     end
 
     def not_where(options = {})
-      return self unless options.present?
+      return self if options.empty?
       # reverse the order returned here, since we're doing not_where
       not_filters, filters = where_clause(options)
       clone_with(filters: filters, not_filters: not_filters)
     end
 
     def boost_where(options = {})
-      return self unless options.present?
+      return self if options.empty?
       weight = options.delete(:weight) || 1.2
 
       boosts = options.map do |field, values|
@@ -78,8 +75,7 @@ module Search
     end
 
     def boost_not_where(options = {})
-      return self unless options.present?
-      options = options.with_indifferent_access
+      return self if options.empty?
       weight = options.delete(:weight) || 1.2
 
       boosts = []
@@ -96,7 +92,7 @@ module Search
     end
 
     def range(field:, min: nil, max: nil)
-      return self unless min.present? || max.present?
+      return self unless min || max
       clone_with(filter: Filters::RangeFilter.new(
         field: field,
         min: min,
@@ -105,7 +101,7 @@ module Search
     end
 
     def not_range(field:, min: nil, max: nil)
-      return self unless min.present? || max.present?
+      return self unless min || max
       clone_with(not_filter: Filters::RangeFilter.new(
         field: field,
         min: min,
@@ -114,7 +110,7 @@ module Search
     end
 
     def boost_range(field:, min: nil, max: nil, weight: 1.2)
-      return self unless min.present? || max.present?
+      return self unless min || max
       clone_with(boost: Boosts::Boost.new(
         filter: Filters::RangeFilter.new(
           field: field,
@@ -144,12 +140,12 @@ module Search
     end
 
     def boost_geo(options = {})
-      return self unless options.present?
+      return self if options.empty?
       clone_with(boost: Boosts::GeoBoost.new(options))
     end
 
     def match(string, options = {})
-      return self unless string.present?
+      return self if string.empty?
       field     = options[:field] || '_all'
       operator  = options[:operator] || 'and'
       clone_with(match: Queries::MatchQuery.new(string, field: field, operator: operator))
@@ -180,14 +176,14 @@ module Search
     end
 
     def response
-      @response = Search.search(type: @type, body: request.to_search)
+      @response = Stretchy.search(type: @type, body: request.to_search)
       # caution: huuuuge logs, but pretty helpful
       # Rails.logger.debug(Colorize.purple(JSON.pretty_generate(@response)))
       @response
     end
 
     def id_response
-      @id_response ||= Search.search(type: @type, body: request.to_search, fields: [])
+      @id_response ||= Stretchy.search(type: @type, body: request.to_search, fields: [])
       # caution: huuuuge logs, but pretty helpful
       # Rails.logger.debug(Colorize.purple(JSON.pretty_generate(@id_response)))
       @id_response
@@ -204,7 +200,9 @@ module Search
     end
 
     def ids
-      @ids    ||= result_metadata('hits', 'hits').map{ |hit| hit['_id'].to_i == 0 ? hit['_id'] : hit['_id'].to_i }
+      @ids ||= result_metadata('hits', 'hits').map do |hit| 
+        hit['_id'].to_i == 0 ? hit['_id'] : hit['_id'].to_i
+      end
     end
 
     def shards
@@ -225,8 +223,7 @@ module Search
       end
 
       def where_clause(options = {})
-        return [[], []] unless options.present?
-        options = options.with_indifferent_access
+        return [[], []] if options.empty?
         filters = []
         not_filters = []
 
