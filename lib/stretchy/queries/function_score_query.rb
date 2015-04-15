@@ -7,7 +7,9 @@ module Stretchy
 
       def initialize(options = {})
         @functions  = Array(options[:functions])
-        @query      = options[:query] || MatchAllQuery.new
+        @query      = options[:query]
+        @filter     = options[:filter]
+        
         self.class.attributes.map do |field|
           instance_variable_set("@#{field}", options[field])
         end
@@ -15,7 +17,7 @@ module Stretchy
       end
 
       def self.attributes
-        [:filter, :boost, :max_boost, :score_mode, :boost_mode, :min_score]
+        [:boost, :max_boost, :score_mode, :boost_mode, :min_score]
       end
 
       def validate
@@ -47,7 +49,13 @@ module Stretchy
       def to_search
         json = {}
         json[:functions]  = @functions.map(&:to_search)
-        json[:query]      = @query.to_search
+        if @query
+          json[:query]    = @query.to_search
+        elsif @filter
+          json[:filter]   = @filter.to_search
+        else
+          json[:query]    = Stretchy::Queries::MatchAllQuery.new.to_search
+        end
 
         self.class.attributes.reduce(json) do |body, field|
           ivar = instance_variable_get("@#{field}")
