@@ -1,6 +1,7 @@
 $LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
 require 'stretchy'
 
+SPEC_INDEX    = 'stretchy_test'
 FIXTURE_TYPE  = 'game_dev'
 FIXTURES      = {}
 
@@ -20,7 +21,7 @@ MAPPING  = {
 }
 
 Stretchy.configure do |c|
-  c.index_name = FIXTURE_TYPE
+  c.index_name = SPEC_INDEX
 end
 
 RSpec.configure do |config|

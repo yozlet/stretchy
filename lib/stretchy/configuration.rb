@@ -28,9 +28,7 @@ module Stretchy
     end
 
     def client(options = {})
-      return @client if @client
-
-      @client = Elasticsearch::Client.new(client_options.merge(options))
+      @client ||= Elasticsearch::Client.new(client_options.merge(options))
     end
   end
 end

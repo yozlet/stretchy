@@ -5,13 +5,11 @@ describe Stretchy do
     expect(Stretchy::VERSION).not_to be nil
   end
 
-  it 'can be configured' do
-    Stretchy.configure do |c|
-      c.index_name = 'stretchy_test'
-      c.url        = 'http://localhost:9200'
-    end
+  # most config methods are called in spec_helper
+  # so we've already verified they work
 
-    expect(Stretchy.index_name).to eq('stretchy_test')
-    expect(Stretchy.url).to eq('http://localhost:9200')
+  it 'has a singleton client' do
+    expect(Stretchy.client).to be_a(Elasticsearch::Transport::Client)
+    expect(Stretchy.client.object_id).to eq(Stretchy.client.object_id)
   end
 end
