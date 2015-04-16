@@ -4,6 +4,7 @@
   "title" : "Game Artiste",
   "company" : "Suda51",
   "salary" : 300000,
+  "first_game" : "2005-06-09T23:15:43.511Z",
   "games" : [
     {
       "id" : 5,
