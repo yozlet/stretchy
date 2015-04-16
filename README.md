@@ -111,6 +111,14 @@ The field must be mapped as a `geo_point` field. See [Elasticsearch types](http:
 * `not_geo` - filters for documents outside the specified range
 * `boost_geo` - boosts the relevance score for documents based on how far from the given point they are
 
+### Limit and Offset
+
+```ruby
+query = query.limit(20).offset(1000)
+```
+
+Works the same way as ActiveRecord's limit and offset methods.
+
 ### Boost Random
 
 ```ruby
@@ -118,6 +126,22 @@ query = query.boost_random(user.id, 1.4)
 ```
 
 Provides a random-but-deterministic boost to relevance scores. The first parameter is required, and represents the random seed. The second parameter is optional, and represents the weight for the random factor. See [Random Scoring](http://www.elastic.co/guide/en/elasticsearch/guide/master/random-scoring.html) for more details.
+
+### Explain
+
+```ruby
+query = query.explain.results
+```
+
+Provides Elasticsearch explanation results in `query.response` . See [the explain documentation](http://www.elastic.co/guide/en/elasticsearch/reference/1.x/search-explain.html) for more info.
+
+### Response
+
+```ruby
+query.response
+```
+
+Executes the query, returns the raw JSON response from Elasticsearch and caches it. Use this to get at search API data not in the source documents.
 
 ### Results
 
@@ -135,7 +159,15 @@ query.ids
 
 Provides only the ids for each hit. If your document ids are numeric (as is the case for most ActiveRecord-integrated documents), they will be converted to integers.
 
-This is somewhat intelligent - if you have already called `results` the ids will be fetched from there.
+This is somewhat intelligent - if you have already called `results` the ids will be fetched from there, otherwise it will run the search and skip the data-fetch phase in Elasticsearch.
+
+### Total
+
+```ruby
+query.total
+```
+
+Returns the total number of matches returned by the query - not just the current page. Makes plugging into [Kaminari](https://github.com/amatsuda/kaminari) a snap.
 
 ## Development
 
