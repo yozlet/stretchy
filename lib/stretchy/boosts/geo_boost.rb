@@ -2,12 +2,20 @@ module Stretchy
   module Boosts
     class GeoBoost
 
+      DEFAULTS = {
+        field: 'coords',
+        offset: '10km',
+        scale: '50km',
+        decay: 0.75,
+        weight: 1.2
+      }.freeze
+
       def initialize(options = {})
-        @field  = options[:field]   || 'coords'
-        @offset = options[:offset]  || '10km'
-        @scale  = options[:scale]   || '50km'
-        @decay  = options[:decay]   || 0.75
-        @weight = options[:weight]  || 1
+        @field  = options[:field]   || DEFAULTS[:field]
+        @offset = options[:offset]  || DEFAULTS[:offset]
+        @scale  = options[:scale]   || DEFAULTS[:scale]
+        @decay  = options[:decay]   || DEFAULTS[:decay]
+        @weight = options[:weight]  || DEFAULTS[:weight]
         @lat    = options[:lat]
         @lng    = options[:lng]
       end

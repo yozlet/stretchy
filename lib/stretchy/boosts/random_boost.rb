@@ -2,10 +2,12 @@ module Stretchy
   module Boosts
     class RandomBoost
 
+      DEFAULT_WEIGHT = 1.2
+
       # randomizes order (somewhat) consistently per-user
       # http://www.elastic.co/guide/en/elasticsearch/guide/current/random-scoring.html
 
-      def initialize(seed, weight = 1)
+      def initialize(seed, weight = DEFAULT_WEIGHT)
         @seed   = seed
         @weight = weight
       end

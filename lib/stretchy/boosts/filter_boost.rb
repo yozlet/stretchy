@@ -2,7 +2,9 @@ module Stretchy
   module Boosts
     class FilterBoost
 
-      def initialize(filter:, weight: 1.2)
+      DEFAULT_WEIGHT = 1.2
+
+      def initialize(filter:, weight: DEFAULT_WEIGHT)
         @filter = filter
         @weight = weight
       end
