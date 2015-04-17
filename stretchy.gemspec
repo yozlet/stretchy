@@ -8,6 +8,7 @@ Gem::Specification.new do |spec|
   spec.version       = Stretchy::VERSION
   spec.authors       = ["agius"]
   spec.email         = ["andrew@atevans.com"]
+  spec.licenses      = ['MIT']
 
   spec.summary       = %q{Query builder for Elasticsearch}
   spec.description   = %q{Build queries for Elasticsearch with a chainable interface like ActiveRecord's.}
