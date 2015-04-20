@@ -1,9 +1,18 @@
 module Stretchy
   module Queries
-    class FunctionScoreQuery
+    class FunctionScoreQuery < Base
 
       SCORE_MODES = %w(multiply sum avg first max min)
       BOOST_MODES = %w(multiply replace sum avg max min)
+
+      contract functions: {responds_to: :to_search, array: true},
+                   query: {type: Base},
+                  filter: {type: Stretchy::Filters::Base},
+              score_mode: {type: String, in: SCORE_MODES},
+              boost_mode: {type: String, in: BOOST_MODES},
+               min_score: {type: Numeric},
+               max_boost: {type: Numeric},
+                   boost: {type: Numeric}
 
       def initialize(options = {})
         @functions  = Array(options[:functions])
@@ -13,36 +22,17 @@ module Stretchy
         self.class.attributes.map do |field|
           instance_variable_set("@#{field}", options[field])
         end
-        validate
+        validate!
+        validate_query_or_filter
       end
 
       def self.attributes
         [:boost, :max_boost, :score_mode, :boost_mode, :min_score]
       end
 
-      def validate
+      def validate_query_or_filter
         if @query && @filter
-          raise ArgumentError.new("Cannot have both query and filter -- combine using a FilteredQuery")
-        end
-
-        if @boost && !@boost.is_a?(Numeric)
-          raise ArgumentError.new("Boost must be a number - it is the global boost for the whole query")
-        end
-
-        if @max_boost && !@max_boost.is_a?(Numeric)
-          raise ArgumentError.new("Max boost must be a number")
-        end
-
-        if @min_score && !@min_score.is_a?(Numeric)
-          raise ArgumentError.new("min_score must be a number - it is the global boost for the whole query")
-        end
-
-        if @score_mode && !SCORE_MODES.include?(@score_mode)
-          raise ArgumentError.new("Score mode must be one of #{SCORE_MODES.join(', ')}")
-        end
-
-        if @boost_mode && !BOOST_MODES.include?(@boost_mode)
-          raise ArgumentError.new("Score mode must be one of #{BOOST_MODES.join(', ')}")
+          raise Stretchy::Errors::ContractError.new "Cannot have both query and filter -- combine using a FilteredQuery"
         end
       end
 

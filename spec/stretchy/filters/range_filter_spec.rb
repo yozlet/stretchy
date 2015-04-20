@@ -44,7 +44,7 @@ describe Stretchy::Filters::RangeFilter do
     expect{subject.new(field: field)}.to raise_error
   end
 
-  xit 'raises error unless min and max are approriate types' do
+  it 'raises error unless min and max are approriate types' do
     expect{subject.new(field: field, min: 'wat')}.to raise_error
     expect{subject.new(field: field, max: 'wat')}.to raise_error
   end

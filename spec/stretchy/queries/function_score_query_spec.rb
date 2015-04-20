@@ -87,15 +87,15 @@ describe Stretchy::Queries::FunctionScoreQuery do
       expect{subject.new(min_score: 'wat')}.to raise_error
     end
 
-    xit 'invalid query' do
+    it 'invalid query' do
       expect{subject.new(query: 'wat')}.to raise_error
     end
 
-    xit 'invalid filter' do
+    it 'invalid filter' do
       expect{subject.new(filter: 'wat')}.to raise_error
     end
 
-    xit 'invalid functions' do
+    it 'invalid functions' do
       expect{subject.new(functions: [filter_boost, 'wat'])}.to raise_error
     end
 

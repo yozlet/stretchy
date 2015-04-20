@@ -36,20 +36,20 @@ describe Stretchy::Filters::GeoFilter do
     expect{subject.new}.to raise_error
   end
 
-  xit 'raises error unless appropriate types are passed' do
+  it 'raises error unless appropriate types are passed' do
     expect{subject.new(field: ['array'], distance: distance, lat: lat, lng: lng)}.to raise_error
     expect{subject.new(field: field, distance: 'not_a_distance', lat: lat, lng: lng)}.to raise_error
     expect{subject.new(field: field, distance: distance, lat: 'wat', lng: lng)}.to raise_error
     expect{subject.new(field: field, distance: distance, lat: lat, lng: 'wat')}.to raise_error
   end
 
-  xit 'raises error if any params are blank' do
+  it 'raises error if any params are blank' do
     expect{subject.new(field: '', distance: distance, lat: lat, lng: lng)}.to raise_error
     expect{subject.new(field: field, distance: '', lat: lat, lng: lng)}.to raise_error
   end
 
-  xit 'raises error unless lat/lng are valid coords' do
-    expect{subject.new(field: field, distance: distance, lat: 0, lng: lng)}.to raise_error
+  it 'raises error unless lat/lng are valid coords' do
+    expect{subject.new(field: field, distance: distance, lat: 'wat', lng: lng)}.to raise_error
     expect{subject.new(field: field, distance: distance, lat: lat, lng: 999)}.to raise_error
   end
 end

@@ -1,9 +1,12 @@
 module Stretchy
   module Filters
-    class QueryFilter
+    class QueryFilter < Base
+
+      contract :query, type: Stretchy::Queries::Base
 
       def initialize(query)
         @query = query
+        validate!
       end
 
       def to_search

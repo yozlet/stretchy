@@ -1,6 +1,6 @@
 module Stretchy
   module Filters
-    class ExistsFilter
+    class ExistsFilter < Base
 
       # CAUTION: this will match empty strings
       # see http://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-exists-filter.html

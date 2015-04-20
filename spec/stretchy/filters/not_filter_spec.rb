@@ -33,8 +33,9 @@ describe Stretchy::Filters::NotFilter do
     expect(result[:and].last).to eq(range_filter.to_search)
   end
 
-  xit 'raises exception unless at least one filter is passed' do
+  it 'raises exception unless at least one filter is passed' do
     expect{subject.new}.to raise_error
+    expect{subject.new('wat')}.to raise_error
   end
 
 end

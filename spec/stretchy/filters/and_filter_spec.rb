@@ -21,7 +21,7 @@ describe Stretchy::Filters::AndFilter do
     expect(result).to include(range_filter.to_search)
   end
 
-  xit 'accepts a single filter' do
+  it 'accepts a single filter' do
     result = get_result(terms_filter)
     expect(result).to include(terms_filter.to_search)
   end
@@ -32,7 +32,7 @@ describe Stretchy::Filters::AndFilter do
     expect(result).to include(range_filter.to_search)
   end
 
-  xit 'validates that arguments are filters' do
+  it 'validates that arguments are filters' do
     expect{subject.new([terms_filter, 'wat'])}.to raise_error
   end
 

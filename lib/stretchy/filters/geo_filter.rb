@@ -1,11 +1,18 @@
 module Stretchy
   module Filters
-    class GeoFilter
+    class GeoFilter < Base
+
+      contract distance: {type: :distance},
+                    lat: {type: :lat},
+                    lng: {type: :lng},
+                  field: {type: :field}
+
       def initialize(field: 'coords', distance: '50km', lat:, lng:)
         @field    = field
         @distance = distance
         @lat      = lat
         @lng      = lng
+        validate!
       end
 
       def to_search

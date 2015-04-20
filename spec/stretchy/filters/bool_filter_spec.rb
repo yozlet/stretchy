@@ -60,12 +60,17 @@ describe Stretchy::Filters::BoolFilter do
     expect{subject.new}.to raise_error
   end
 
+  it 'raises error unless params are filters' do
+    expect{subject.new(must: ['wat'], must_not: ['nope'], should: ['wtf'])}.to raise_error(Stretchy::Errors::ContractError)
+    expect{subject.new(must: 'wat', must_not: 123)}.to raise_error(Stretchy::Errors::ContractError)
+  end
+
   xit 'must param is optional' do
     result = get_result(must_not: terms_filter)
     expect(result[:must_not].first).to eq(terms_filter.to_search)
   end
 
-  xit 'must param is optional' do
+  xit 'must_not param is optional' do
     result = get_result(must: terms_filter)
     expect(result[:must].first).to eq(terms_filter.to_search)
   end

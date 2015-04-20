@@ -1,9 +1,12 @@
 module Stretchy
   module Filters
-    class AndFilter
+    class AndFilter < Base
+
+      contract filters: {type: Stretchy::Filters::Base, array: true}
 
       def initialize(filters)
         @filters = Array(filters)
+        validate!
       end
 
       def to_search

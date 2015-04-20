@@ -25,8 +25,12 @@ describe Stretchy::Queries::MatchQuery do
     expect(result['_all'][:operator]).to eq('or')
   end
 
-  xit 'validates elastic operators' do
+  it 'validates elastic operators' do
     expect{subject.new(string, operator: 'wtf')}.to raise_error
+  end
+
+  it 'validates field presence' do
+    expect{subject.new(string, field: '')}.to raise_error
   end
 
   xit 'allows matching multiple field / string combinations' do

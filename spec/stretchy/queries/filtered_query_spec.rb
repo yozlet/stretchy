@@ -22,4 +22,9 @@ describe Stretchy::Queries::FilteredQuery do
     expect{subject.new}.to raise_error
   end
 
+  it 'raises when given a non-query' do
+    expect{subject.new(query: '', filter: filter)}.to raise_error
+    expect{subject.new(query: query, filter: 123)}.to raise_error
+  end
+
 end
