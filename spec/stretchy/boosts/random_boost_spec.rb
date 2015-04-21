@@ -22,7 +22,7 @@ describe Stretchy::Boosts::RandomBoost do
     expect(result[:weight]).to eq(Stretchy::Boosts::RandomBoost::DEFAULT_WEIGHT)
   end
 
-  xit 'raises error unless seed and weight are numeric' do
+  it 'raises error unless seed and weight are numeric' do
     expect{subject.new('wat')}.to raise_error
     expect{subject.new(seed, 'wat')}.to raise_error
   end

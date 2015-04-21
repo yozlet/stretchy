@@ -1,6 +1,6 @@
 module Stretchy
   module Boosts
-    class GeoBoost
+    class GeoBoost < Base
 
       DEFAULTS = {
         field: 'coords',
@@ -10,6 +10,13 @@ module Stretchy
         weight: 1.2
       }.freeze
 
+      contract offset: {type: :distance},
+                scale: {type: :distance},
+                decay: {type: Numeric},
+               weight: {type: Numeric},
+                  lat: {type: :lat},
+                  lng: {type: :lng}
+
       def initialize(options = {})
         @field  = options[:field]   || DEFAULTS[:field]
         @offset = options[:offset]  || DEFAULTS[:offset]
@@ -18,6 +25,7 @@ module Stretchy
         @weight = options[:weight]  || DEFAULTS[:weight]
         @lat    = options[:lat]
         @lng    = options[:lng]
+        validate!
       end
 
       def to_search

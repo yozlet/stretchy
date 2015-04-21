@@ -1,10 +1,14 @@
 module Stretchy
   module Queries
-    class FilteredQuery
+    class FilteredQuery < Base
+
+      contract query: {type: Base},
+              filter: {type: Stretchy::Filters::Base}
 
       def initialize(query: nil, filter:)
         @query  = query
         @filter = filter
+        validate!
       end
 
       def to_search

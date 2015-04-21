@@ -44,17 +44,20 @@ describe Stretchy::Boosts::GeoBoost do
     expect(result[:weight]).to eq(Stretchy::Boosts::GeoBoost::DEFAULTS[:weight])
   end
 
-  xit 'raises error unless lat and lng are valid coords' do
+  it 'raises error unless lat and lng are valid coords' do
     expect{subject.new(lat: 'wat', lng: lng)}.to raise_error
+  end
+
+  xit 'raises error unless lat and lng exist on Earth' do
     expect{subject.new(lat: lat, lng: 999)}.to raise_error
   end
 
-  xit 'raises error unless offset and scale are appropriate type' do
+  it 'raises error unless offset and scale are appropriate type' do
     expect{subject.new(lat: lat, lng: lng, offset: 'invalid')}.to raise_error
     expect{subject.new(lat: lat, lng: lng, scale: 'invalid')}.to raise_error
   end
 
-  xit 'raises error unless weight is numeric' do
+  it 'raises error unless weight is numeric' do
     expect{subject.new(lat: lat, lng: lng, weight: 'invalid')}.to raise_error
   end
 end

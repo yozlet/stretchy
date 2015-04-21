@@ -22,6 +22,10 @@ describe Stretchy::Filters::TermsFilter do
     expect(result[field].first).to eq(values.first)
   end
 
+  it 'raises error for invalid types' do
+    expect{subject.new(field: '', values: 'wat')}.to raise_error
+  end
+
   xit 'raises error unless at least one value present' do
     expect{subject.new(field: field, values: [])}.to raise_error
   end

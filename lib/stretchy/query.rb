@@ -145,7 +145,7 @@ module Stretchy
     end
 
     def match(string, options = {})
-      return self if string.empty?
+      return self if string.nil? || string.empty?
       field     = options[:field] || '_all'
       operator  = options[:operator] || 'and'
       clone_with(match: Queries::MatchQuery.new(string, field: field, operator: operator))

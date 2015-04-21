@@ -15,7 +15,7 @@ describe Stretchy::Filters::QueryFilter do
     expect(result).to eq(query.to_search)
   end
 
-  xit 'raises error unless query is appropriate type' do
+  it 'raises error unless query is appropriate type' do
     expect{subject.new}.to raise_error
     expect{subject.new('wat')}.to raise_error
     expect{subject.new(0)}.to raise_error

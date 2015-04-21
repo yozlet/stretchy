@@ -1,6 +1,11 @@
 module Stretchy
   module Filters
-    class RangeFilter
+    class RangeFilter < Base
+
+      contract field: {type: :field},
+                 min: {type: Numeric},
+                 max: {type: Numeric}
+
       def initialize(field:, min:, max:)
         @field = field
         @min   = min

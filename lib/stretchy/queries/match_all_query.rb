@@ -1,6 +1,10 @@
 module Stretchy
   module Queries
-    class MatchAllQuery
+    class MatchAllQuery < Base
+
+      def initialize
+      end
+      
       def to_search
         { match_all: {} }
       end
