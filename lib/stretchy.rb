@@ -9,6 +9,7 @@ require 'stretchy/utils/client_actions'
 require 'stretchy/boosts/base'
 require 'stretchy/filters/base'
 require 'stretchy/queries/base'
+require 'stretchy/clauses/base'
 
 Dir[File.join(File.dirname(__FILE__), 'stretchy', '**', '*.rb')].each do |path|
   require path unless path =~ /utils/ || path =~ /base/

@@ -5,17 +5,14 @@ module Stretchy
       contract field: {type: :field},
               values: {type: Array}
 
-      def initialize(field:, values:)
-        @field = field
-        @values = Array(values)
+      def initialize(options = {})
+        @fields = options
         validate!
       end
 
       def to_search
         {
-          terms: {
-            @field => @values
-          }
+          terms: @fields
         }
       end
     end
