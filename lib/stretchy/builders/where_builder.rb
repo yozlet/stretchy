@@ -22,7 +22,6 @@ module Stretchy
 
       def to_search
         query = Stretchy::Queries::MatchAllQuery.new
-        puts @matches.inspect
         query = match_query(@matches) if @matches.any?
 
         if musts? || must_nots?
@@ -77,13 +76,18 @@ module Stretchy
       end
 
       def and_filter
-        filter = build_filters(
+        filter = nil
+        filters = build_filters(
           terms:  @terms,
           exists: @exists,
           ranges: @ranges,
           geos:   @geos
         )
-        filter = Stretchy::Filters::AndFilter.new(filter) if filter.count > 1
+        if filters.count > 1
+          filter = Stretchy::Filters::AndFilter.new(filters)
+        else
+          filter = filters.first
+        end
         filter
       end
 

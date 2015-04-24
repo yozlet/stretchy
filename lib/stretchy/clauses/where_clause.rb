@@ -60,7 +60,7 @@ module Stretchy
           when nil
             store = inverse? ? @where_builder.exists : @where_builder.empties
             store += Array(field)
-          when String
+          when String, Symbol
             store = inverse? ? @where_builder.antimatches : @where_builder.matches
             store[field] += Array(param)
           when Range
