@@ -15,9 +15,9 @@ module Stretchy
 
       def to_search
         json = {}
-        json[:must]     = @must.map(&:to_search)      if @must
-        json[:must_not] = @must_not.map(&:to_search)  if @must_not
-        json[:should]   = @should.map(&:to_search)    if @should
+        json[:must]     = @must.map(&:to_search)      if @must.any?
+        json[:must_not] = @must_not.map(&:to_search)  if @must_not.any?
+        json[:should]   = @should.map(&:to_search)    if @should.any?
         { bool: json }
       end
     end

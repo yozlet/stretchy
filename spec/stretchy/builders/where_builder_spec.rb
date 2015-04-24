@@ -8,19 +8,13 @@ describe Stretchy::Builders::WhereBuilder do
 
   it 'checks field existence' do
     subject.exists += [:fieldname]
-    expect(subject.to_search[:filtered][:filter][:exists][:field]).to eq(:fieldname)
+    result = subject.build
+    expect(result).to be_a(Stretchy::Filters::ExistsFilter)
   end
 
   it 'excludes nils' do
     subject.empties += [:fieldname]
     expect(subject.to_search[:filtered][:filter][:not][:exists][:field]).to eq(:fieldname)
-  end
-
-  it 'matches string terms' do
-    subject.matches[:fieldname] = [:value1, :value2]
-    results = subject.to_search
-    expect(results[:match][:fieldname][:query]).to eq('value1 value2')
-    expect(results[:match][:fieldname][:operator]).to eq('and')
   end
 
   it 'excludes string terms' do

@@ -2,9 +2,12 @@ module Stretchy
   module Clauses
     class WhereClause < Base
 
+      def self.tmp(options = {})
+        self.new(Base.new, options)
+      end
+
       def initialize(base, options = {})
         super(base)
-        @where_builder ||= Stretchy::Builders::WhereBuilder.new
         @inverse = options.delete(:inverse)
         add_params(options)
       end
@@ -34,16 +37,23 @@ module Stretchy
         self.class.new(self, options.merge(inverse: !@inverse))
       end
 
-      private
+      def to_query
+        Stretchy::Queries::FilteredQuery.new(
+          query:  @match_builder.build,
+          filter: @where_builder.build
+        )
+      end
 
-        def inverse?
-          @inverse
-        end
+      private
         
         def add_params(options = {})
           options.each do |field, param|
+            # if it is an array, process each param
+            # separately - ensures string & symbols
+            # always go into .match_builder
+            
             if param.is_a?(Array)
-              param.each {|p| add_param(field, p) }
+              param.each{|p| add_param(field, p) }
             else
               add_param(field, param)
             end
@@ -61,8 +71,11 @@ module Stretchy
             store = inverse? ? @where_builder.exists : @where_builder.empties
             store += Array(field)
           when String, Symbol
-            store = inverse? ? @where_builder.antimatches : @where_builder.matches
-            store[field] += Array(param)
+            if inverse?
+              @match_builder.antimatches[field] += Array(param)
+            else
+              @match_builder.matches[field] += Array(param)
+            end
           when Range
             store = inverse? ? @where_builder.antiranges : @where_builder.ranges
             store[field] = { min: param.min, max: param.max }

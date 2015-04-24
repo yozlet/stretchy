@@ -2,13 +2,10 @@ module Stretchy
   module Builders
     class WhereBuilder
 
-      attr_accessor :matches, :antimatches, :terms, :antiterms,
-                    :exists, :empties, :ranges, :antiranges,
-                    :geos, :antigeos
+      attr_accessor :terms, :antiterms, :exists, :empties, 
+                    :ranges, :antiranges, :geos, :antigeos
 
       def initialize(options = {})
-        @matches      = Hash.new { [] }
-        @antimatches  = Hash.new { [] }
         @terms        = Hash.new { [] }
         @antiterms    = Hash.new { [] }
         @ranges       = {}
@@ -20,32 +17,7 @@ module Stretchy
         @empties      = []
       end
 
-      def to_search
-        query = Stretchy::Queries::MatchAllQuery.new
-        query = match_query(@matches) if @matches.any?
-
-        if musts? || must_nots?
-          query = Stretchy::Queries::FilteredQuery.new(query: query, filter: build_filter)
-        end
-
-        query.to_search
-      end
-
-      def musts?
-        @terms.any? || @exists.any? || @ranges.any? || @geos.any?
-      end
-
-      def must_nots?
-        @antiterms.any?   || @empties.any?    || 
-        @antimatches.any? || @antiranges.any? || 
-        @antigeos.any?
-      end
-
-      def use_bool?
-        musts? && must_nots?
-      end
-
-      def build_filter
+      def build
         if use_bool?
           bool_filter
         elsif musts?
@@ -55,6 +27,23 @@ module Stretchy
         else
           nil
         end
+      end
+
+      def musts?
+        @terms.any? || @exists.any? || @ranges.any? || @geos.any?
+      end
+
+      def must_nots?
+        @antiterms.any?   || @empties.any?    || 
+        @antiranges.any?  || @antigeos.any?
+      end
+
+      def use_bool?
+        musts? && must_nots?
+      end
+
+      def any?
+        musts? || must_nots?
       end
 
       def bool_filter
@@ -68,7 +57,6 @@ module Stretchy
           must_not: build_filters(
             terms: @antiterms,
             exists: @empties,
-            matches: @antimatches,
             ranges: @antiranges,
             geos: @antigeos
           )
@@ -95,7 +83,6 @@ module Stretchy
         filter = build_filters(
           terms:    @antiterms,
           exists:   @empties,
-          matches:  @antimatches,
           ranges:   @antiranges,
           geos:     @antigeos
         )
@@ -106,7 +93,6 @@ module Stretchy
       def build_filters(options = {})
         filters = []
         terms   = Hash(options[:terms])
-        matches = Hash(options[:matches])
         ranges  = Hash(options[:ranges])
         geos    = Hash(options[:geos])
         exists  = Array(options[:exists])
@@ -133,21 +119,7 @@ module Stretchy
             lng: values[:lng]
           )
         end
-        
-        filters << Stretchy::Filters::QueryFilter.new(match_query(matches)) if matches.any?
         filters
-      end
-
-      def match_query(params)
-        match_data = params.map do |name, terms|
-          {
-            name: name,
-            query: terms.join(' '),
-            operator: 'and'
-          }
-        end
-
-        Stretchy::Queries::MatchQuery.new(match_data) unless match_data.empty?
       end
     end
   end

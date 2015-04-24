@@ -4,23 +4,32 @@ module Stretchy
 
       OPERATORS = ['and', 'or']
 
-      contract fields: {type: :field},
+      contract field: {type: :field},
             operator: {type: String, in: OPERATORS},
               string: {type: String}
 
-      def initialize(fields)
-        @fields = fields
+      def initialize(options = {})
+        case options
+        when String
+          @field    = '_all'
+          @string   = options
+          @operator = 'and'
+        when Hash
+          @field    = options[:field]
+          @string   = options[:string]
+          @operator = options[:operator] || 'and'
+        end
       end
 
       def to_search
-        json = {match: {}}
-        @fields.each do |field|
-          json[:match][field[:name]] = {
-            query: field[:query],
-            operator: field[:operator]
+        {
+          match: {
+            @field => {
+              query:    @string,
+              operator: @operator
+            }
           }
-        end
-        json
+        }
       end
 
     end
