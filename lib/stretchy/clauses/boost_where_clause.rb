@@ -3,21 +3,18 @@ module Stretchy
     class BoostWhereClause < BoostClause
 
       def initialize(base, options = {})
-        super(base)
+        super(base, options)
         where_function(:init, options)
+        self
       end
 
       def range(*args)
-        options   = args.last.is_a?(Hash) ? args.pop : {}
-        new_args  = args + [options.merge(method: :range)]
-        where_function(:range, *new_args)
+        where_function(:range, *args)
         self
       end
 
       def geo(*args)
-        options   = args.last.is_a?(Hash) ? args.pop : {}
-        new_args  = args + [options.merge(method: :geo)]
-        where_function(:geo, *new_args)
+        where_function(:geo, *args)
         self
       end
 
@@ -30,15 +27,17 @@ module Stretchy
         def where_function(method, *args)
           options   = args.last.is_a?(Hash) ? args.pop : {}
           weight    = options.delete(:weight)
-          
-          new_args  = args + [options.merge(method: :geo)]
-          clause = WhereClause.tmp(options.merge(inverse: inverse?))
-          clause = clause.send(method, *new_args) unless method == :init
 
-          @boost_builder.functions << {
-            filter: Stretchy::Filters::QueryFilter.new(clause.to_query),
-            weight: weight
-          }
+          clause    = nil
+          if method == :init
+            clause  = WhereClause.tmp(options.merge(inverse: inverse?))
+          else
+            args.push(options)
+            clause  = WhereClause.tmp(inverse: inverse?).send(method, *args)
+          end
+          boost     = clause.to_boost(weight)
+
+          @boost_builder.functions << boost if boost
         end
     end
   end

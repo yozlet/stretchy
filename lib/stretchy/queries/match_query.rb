@@ -15,10 +15,11 @@ module Stretchy
           @string   = options
           @operator = 'and'
         when Hash
-          @field    = options[:field]
+          @field    = options[:field]    || '_all'
           @string   = options[:string]
           @operator = options[:operator] || 'and'
         end
+        validate!
       end
 
       def to_search

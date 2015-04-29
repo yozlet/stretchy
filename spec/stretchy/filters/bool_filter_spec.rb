@@ -2,7 +2,7 @@ require 'spec_helper'
 
 describe Stretchy::Filters::BoolFilter do
 
-  let(:terms_filter) { Stretchy::Filters::TermsFilter.new(field: 'name', values: ['Masahiro Sakurai'])}
+  let(:terms_filter) { Stretchy::Filters::TermsFilter.new('name', 'Masahiro Sakurai') }
   let(:range_filter) do
     Stretchy::Filters::RangeFilter.new(
       field: 'salary',
@@ -28,20 +28,20 @@ describe Stretchy::Filters::BoolFilter do
   it 'takes a must param' do
     result = get_result(must: terms_filter, must_not: nil)
     expect(result[:must].first).to eq(terms_filter.to_search)
-    expect(result[:must_not]).to eq([])
+    expect(result[:must_not]).to be_nil
   end
 
   it 'takes a must_not param' do
     result = get_result(must: nil, must_not: terms_filter)
     expect(result[:must_not].first).to eq(terms_filter.to_search)
-    expect(result[:must]).to eq([])
+    expect(result[:must]).to be_nil
   end
 
   it 'takes a should param' do
     result = get_result(must: nil, must_not: nil, should: terms_filter)
     expect(result[:should].first).to eq(terms_filter.to_search)
-    expect(result[:must]).to eq([])
-    expect(result[:must_not]).to eq([])
+    expect(result[:must]).to be_nil
+    expect(result[:must_not]).to be_nil
   end
 
   it 'takes arrays as parameters' do
@@ -65,12 +65,12 @@ describe Stretchy::Filters::BoolFilter do
     expect{subject.new(must: 'wat', must_not: 123)}.to raise_error(Stretchy::Errors::ContractError)
   end
 
-  xit 'must param is optional' do
+  it 'must param is optional' do
     result = get_result(must_not: terms_filter)
     expect(result[:must_not].first).to eq(terms_filter.to_search)
   end
 
-  xit 'must_not param is optional' do
+  it 'must_not param is optional' do
     result = get_result(must: terms_filter)
     expect(result[:must].first).to eq(terms_filter.to_search)
   end

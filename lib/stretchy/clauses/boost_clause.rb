@@ -15,6 +15,11 @@ module Stretchy
         BoostWhereClause.new(self, options)
       end
 
+      def random(*args)
+        @boost_builder.functions << Stretchy::Boosts::RandomBoost.new(*args)
+        self
+      end
+
       def all(num)
         @boost_builder.overall_boost = num
         self
@@ -36,7 +41,8 @@ module Stretchy
       end
 
       def not(options = {})
-        self.class.new(self, options.merge(inverse: !inverse?))
+        inst = self.class.new(self, options.merge(inverse: !inverse?))
+        inst
       end
 
     end

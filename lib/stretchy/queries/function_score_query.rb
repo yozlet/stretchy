@@ -5,7 +5,7 @@ module Stretchy
       SCORE_MODES = %w(multiply sum avg first max min)
       BOOST_MODES = %w(multiply replace sum avg max min)
 
-      contract functions: {type: Hash, array: true},
+      contract functions: {type: Stretchy::Boosts::Base, array: true},
                    query: {type: Base},
                   filter: {type: Stretchy::Filters::Base},
               score_mode: {type: String, in: SCORE_MODES},
@@ -15,7 +15,7 @@ module Stretchy
                    boost: {type: Numeric}
 
       def initialize(options = {})
-        @functions  = options[:functions]
+        @functions  = Array(options[:functions])
         @query      = options[:query]
         @filter     = options[:filter]
         
@@ -38,11 +38,7 @@ module Stretchy
 
       def to_search
         json = {}
-        json[:functions]  = @functions.map do |f|
-          filter = {filter: f[:filter].to_search}
-          filter[:weight] = f[:weight] if f[:weight].is_a?(Numeric)
-          filter
-        end
+        json[:functions]  = @functions.map(&:to_search)
         if @query
           json[:query]    = @query.to_search
         elsif @filter

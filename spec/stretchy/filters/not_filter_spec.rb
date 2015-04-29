@@ -3,7 +3,7 @@ require 'spec_helper'
 describe Stretchy::Filters::NotFilter do
 
   subject { Stretchy::Filters::NotFilter }
-  let(:terms_filter) { Stretchy::Filters::TermsFilter.new(field: 'name', values: ['Masahiro Sakurai'])}
+  let(:terms_filter) { Stretchy::Filters::TermsFilter.new('name', 'Masahiro Sakurai') }
   let(:range_filter) do
     Stretchy::Filters::RangeFilter.new(
       field: 'salary',

@@ -23,6 +23,7 @@ module Stretchy
           @where_builder      = base.where_builder
           @boost_builder      = base.boost_builder
           @aggregate_builder  = base.aggregate_builder
+          @inverse            = options[:inverse] || base.inverse
           @limit              = base.get_limit
           @offset             = base.get_offset
         else
@@ -33,10 +34,10 @@ module Stretchy
           @where_builder      = Stretchy::Builders::WhereBuilder.new
           @boost_builder      = Stretchy::Builders::BoostBuilder.new
           @aggregate_builder  = nil
+          @inverse            = options[:inverse]
           @limit              = DEFAULT_LIMIT
           @offset             = DEFAULT_OFFSET
         end
-        @inverse = false
       end
 
       def limit(num)
@@ -78,7 +79,7 @@ module Stretchy
             filter: @where_builder.build
           )
         else
-          @match_builder.build.to_search
+          @match_builder.build
         end
 
         @to_search = @boost_builder.build(@to_search) if @boost_builder.any?

@@ -4,8 +4,12 @@ module Stretchy
 
       contract filters: {type: Stretchy::Filters::Base, array: true}
 
-      def initialize(filters)
-        @filters = Array(filters)
+      def initialize(*args)
+        if args.count == 1 && args.first.is_a?(Array)
+          @filters = args.first
+        else
+          @filters = args
+        end
         validate!
       end
 

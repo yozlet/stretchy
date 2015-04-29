@@ -37,11 +37,34 @@ module Stretchy
         self.class.new(self, options.merge(inverse: !@inverse))
       end
 
-      def to_query
-        Stretchy::Queries::FilteredQuery.new(
-          query:  @match_builder.build,
-          filter: @where_builder.build
-        )
+      def to_boost(weight = nil)
+        weight ||= Stretchy::Boosts::FilterBoost::DEFAULT_WEIGHT
+        
+        if @match_builder.any? && @where_builder.any?
+          Stretchy::Boosts::FilterBoost.new(
+            filter: Stretchy::Filters::QueryFilter.new(
+              Stretchy::Queries::FilteredQuery.new(
+                query:  @match_builder.build,
+                filter: @where_builder.build
+              )
+            ),
+            weight: weight
+          )
+        
+        elsif @match_builder.any?
+          Stretchy::Boosts::FilterBoost.new(
+            filter: Stretchy::Filters::QueryFilter.new(
+              @match_builder.build
+            ),
+            weight: weight
+          )
+
+        elsif @where_builder.any?
+          Stretchy::Boosts::FilterBoost.new(
+            filter: @where_builder.build,
+            weight: weight
+          )
+        end
       end
 
       private
@@ -69,7 +92,7 @@ module Stretchy
           case param
           when nil
             store = inverse? ? @where_builder.exists : @where_builder.empties
-            store += Array(field)
+            store << field
           when String, Symbol
             if inverse?
               @match_builder.antimatches[field] += Array(param)

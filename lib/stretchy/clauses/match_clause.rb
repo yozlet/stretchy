@@ -3,20 +3,16 @@ module Stretchy
     class MatchClause < Base
 
       def self.tmp(options = {})
-        base        = Base.new
-        match_store = Stretchy::Builders::MatchBuilder.new
-        self.new(base, options.merge(match_store: match_store))
+        self.new(Base.new, options)
       end
 
       def initialize(base, opts_or_str = {}, options = {})
         super(base)
         if opts_or_str.is_a?(Hash)
-          @inverse     = opts_or_str.delete(:inverse)     || options.delete(:inverse)
-          @match_store = opts_or_str.delete(:match_store) || options.delete(:match_store) || @match_builder
+          @inverse     = opts_or_str.delete(:inverse) || options.delete(:inverse)
           add_params(options.merge(opts_or_str))
         else
           @inverse     = options.delete(:inverse)
-          @match_store = options.delete(:match_store) || @match_builder
           add_params(options.merge('_all' => opts_or_str))
         end
       end
@@ -25,8 +21,14 @@ module Stretchy
         self.class.new(self, opts_or_str, options.merge(inverse: !@inverse))
       end
 
-      def to_query
-        @match_store.build
+      def to_boost(weight = nil)
+        weight ||= Stretchy::Boosts::FilterBoost::DEFAULT_WEIGHT
+        Stretchy::Boosts::FilterBoost.new(
+          filter: Stretchy::Filters::QueryFilter.new(
+            @match_builder.build
+          ),
+          weight: weight
+        )
       end
 
       private
@@ -44,9 +46,9 @@ module Stretchy
 
         def add_param(field, param)
           if inverse?
-            @match_store.antimatches[field] += Array(param)
+            @match_builder.antimatches[field] += Array(param)
           else
-            @match_store.matches[field]     += Array(param)
+            @match_builder.matches[field]     += Array(param)
           end
         end
 

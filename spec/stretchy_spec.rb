@@ -13,13 +13,13 @@ describe Stretchy do
     expect(Stretchy.client.object_id).to eq(Stretchy.client.object_id)
   end
 
-  context 'the god query spec' do
+  context 'saves you a LOT of typing' do
     let(:found)      { fixture(:sakurai) }
     let(:max_time)   { Time.parse(found['first_game']) }
     let(:min_time)   { max_time - (3*60) }
     let(:time_range) { min_time..max_time }
 
-    it 'serializes with complicated params' do
+    specify 'on ridiculous giant queries' do
       clause = Stretchy::Clauses::Base.new(type: FIXTURE_TYPE)
                 .limit(20)
                 .offset(1)
@@ -38,7 +38,7 @@ describe Stretchy do
                 .where.geo(:coords,
                   distance: '27km',
                   lat: found['coords']['lat'],
-                  lng: found['coords']['lng']
+                  lng: found['coords']['lon']
                 )
                 .where.not.geo(:coords,
                   distance: '34mi',
@@ -88,7 +88,7 @@ describe Stretchy do
                 .boost.match.not(boost_match_not_field: 'boost_match_not_string')
       
       result = clause.to_search
-      puts JSON.pretty_generate clause.to_search
+      # puts JSON.pretty_generate clause.to_search
       expect{Stretchy.search(type: FIXTURE_TYPE, body: {query: result})}.to_not raise_error
 
       filtered_query = result[:function_score][:query][:filtered]
@@ -141,7 +141,7 @@ describe Stretchy do
         distance: '27km',
         coords: {
           lat: found['coords']['lat'],
-          lon: found['coords']['lng']
+          lon: found['coords']['lon']
         }
       })
 
@@ -166,7 +166,79 @@ describe Stretchy do
       })
 
       boosts = result[:function_score][:functions]
-      expect(boosts).to be_present
+      expect(boosts.any?).to eq(true)
+
+      expect(boosts).to include(
+        filter: {
+          query: {
+            match: {
+              '_all' => {
+                query: 'boost_match_any',
+                operator: 'and'
+              }
+            }
+          }
+        },
+        weight: 1.2
+      )
+
+      expect(boosts).to include(
+        filter: {
+          query: {
+            filtered: {
+              query: {
+                bool: {
+                  must: [
+                    {
+                      match: {
+                        boost_string_field: {
+                          query: 'boost_string',
+                          operator: 'and'
+                        }
+                      }
+                    },
+                    {
+                      match: {
+                        boost_terms: {
+                          query: 'boost_string_term boost_symbol_term',
+                          operator: 'and'
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              filter: {
+                bool: {
+                  must: [
+                    {
+                      terms: {
+                        boost_terms: [2150]
+                      }
+                    },
+                    {
+                      range: {
+                        boost_range_term: {
+                          gte: 47,
+                          lte: 59
+                        }
+                      }
+                    }
+                  ],
+                  must_not: [
+                    {
+                      exists: {
+                        field: :boost_nil_field
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        weight: 1.3
+      )
       
     end
   end
