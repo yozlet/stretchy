@@ -5,10 +5,11 @@ module Stretchy
       contract query: {type: Base},
               filter: {type: Stretchy::Filters::Base}
 
-      def initialize(query: nil, filter:)
-        @query  = query
-        @filter = filter
+      def initialize(options = {})
+        @query  = options[:query]
+        @filter = options[:filter]
         validate!
+        require_one(query: @query, filter: @filter)
       end
 
       def to_search

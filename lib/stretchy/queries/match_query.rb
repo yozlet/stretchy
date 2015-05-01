@@ -8,10 +8,17 @@ module Stretchy
             operator: {type: String, in: OPERATORS},
               string: {type: String}
 
-      def initialize(string, field: '_all', operator: 'and')
-        @field    = field
-        @operator = operator
-        @string   = string
+      def initialize(options = {})
+        case options
+        when String
+          @field    = '_all'
+          @string   = options
+          @operator = 'and'
+        when Hash
+          @field    = options[:field]    || '_all'
+          @string   = options[:string]
+          @operator = options[:operator] || 'and'
+        end
         validate!
       end
 
@@ -19,7 +26,7 @@ module Stretchy
         {
           match: {
             @field => {
-              query: @string,
+              query:    @string,
               operator: @operator
             }
           }

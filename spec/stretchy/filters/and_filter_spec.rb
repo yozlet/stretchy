@@ -2,7 +2,7 @@ require 'spec_helper'
 
 describe Stretchy::Filters::AndFilter do
   subject { Stretchy::Filters::AndFilter }
-  let(:terms_filter) { Stretchy::Filters::TermsFilter.new(field: 'name', values: ['Masahiro Sakurai'])}
+  let(:terms_filter) { Stretchy::Filters::TermsFilter.new('name', 'Masahiro Sakurai') }
   let(:range_filter) do
     Stretchy::Filters::RangeFilter.new(
       field: 'salary',
@@ -26,7 +26,7 @@ describe Stretchy::Filters::AndFilter do
     expect(result).to include(terms_filter.to_search)
   end
 
-  xit 'accepts argument filters' do
+  it 'accepts argument filters' do
     result = get_result(terms_filter, range_filter)
     expect(result).to include(terms_filter.to_search)
     expect(result).to include(range_filter.to_search)

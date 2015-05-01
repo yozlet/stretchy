@@ -4,7 +4,7 @@ describe Stretchy::Boosts::FilterBoost do
 
   subject { Stretchy::Boosts::FilterBoost }
   let(:exists_filter) { Stretchy::Filters::ExistsFilter.new('name') }
-  let(:terms_filter) { Stretchy::Filters::TermsFilter.new(field: 'name', values: ['Masahiro Sakurai'])}
+  let(:terms_filter) { Stretchy::Filters::TermsFilter.new('name', 'Masahiro Sakurai') }
   let(:weight) { 20 }
 
   def get_result(*args)

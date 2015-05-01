@@ -21,9 +21,4 @@ describe Stretchy::Filters::QueryFilter do
     expect{subject.new(0)}.to raise_error
   end
 
-  xit 'combines an array of queries' do
-    result = get_result([query, match_query])
-    expect(result[:query][:dis_max]).to be_a(Hash)
-  end
-
 end

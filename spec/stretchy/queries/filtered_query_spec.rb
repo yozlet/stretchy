@@ -18,7 +18,7 @@ describe Stretchy::Queries::FilteredQuery do
     expect(q[:filter][:exists][:field]).to eq('name')
   end
 
-  it 'fails when filter is not given' do
+  it 'fails when neither query nor filter is not given' do
     expect{subject.new}.to raise_error
   end
 

@@ -48,7 +48,7 @@ describe Stretchy::Boosts::GeoBoost do
     expect{subject.new(lat: 'wat', lng: lng)}.to raise_error
   end
 
-  xit 'raises error unless lat and lng exist on Earth' do
+  it 'raises error unless lat and lng exist on Earth' do
     expect{subject.new(lat: lat, lng: 999)}.to raise_error
   end
 

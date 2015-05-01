@@ -20,14 +20,12 @@ describe Stretchy::Filters::GeoFilter do
     expect(result[field][:lon]).to eq(lng)
   end
 
-  it 'defaults to 50km distance' do
-    result = get_result(field: field, lat: lat, lng: lng)
-    expect(result[:distance]).to eq('50km')
+  it 'raises error unless distance is present' do
+    expect{subject.new(field: field, lat: lat, lng: lng)}.to raise_error
   end
 
-  it 'defaults to field coords' do
-    result = get_result(lat: lat, lng: lng)
-    expect(result['coords']).to be_a(Hash)
+  it 'raises error unless field is present' do
+    expect{subject.new(distance: '50km', lat: lat, lng: lng)}.to raise_error
   end
 
   it 'raises error unless lat and lng are passed' do

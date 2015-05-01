@@ -16,27 +16,21 @@ describe Stretchy::Queries::MatchQuery do
   end
 
   it 'allows matching a specific field' do
-    result = get_result(string, field: 'name')
+    result = get_result(string: string, field: 'name')
     expect(result['name'][:query]).to eq(string)
   end
 
   it 'allows specifying a different operator' do
-    result = get_result(string, operator: 'or')
+    result = get_result(string: string, operator: 'or')
     expect(result['_all'][:operator]).to eq('or')
   end
 
   it 'validates elastic operators' do
-    expect{subject.new(string, operator: 'wtf')}.to raise_error
+    expect{subject.new(string: string, operator: 'wtf')}.to raise_error
   end
 
   it 'validates field presence' do
-    expect{subject.new(string, field: '')}.to raise_error
-  end
-
-  xit 'allows matching multiple field / string combinations' do
-    result = subject.new(name: string, company: 'Aperture Science').to_search[:match]
-    expect(result[:name][:query]).to eq(string)
-    expect(result[:company][:query]).to eq('Aperture Science')
+    expect{subject.new(string: string, field: '')}.to raise_error
   end
 
 end

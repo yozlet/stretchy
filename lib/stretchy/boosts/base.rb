@@ -4,6 +4,8 @@ module Stretchy
 
       include Stretchy::Utils::Contract
 
+      DEFAULT_WEIGHT = 1.2
+
       def initialize
         raise "Override this in subclass"
       end

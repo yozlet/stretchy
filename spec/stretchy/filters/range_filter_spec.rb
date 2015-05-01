@@ -28,19 +28,19 @@ describe Stretchy::Filters::RangeFilter do
     expect(result[date_field][:lte]).to eq(max_date)
   end
 
-  xit 'max field is optional' do
+  it 'max field is optional' do
     result = get_result(field: field, min: min)
     expect(result[field][:gte]).to eq(min)
     expect(result[field][:lte]).to be_nil
   end
 
-  xit 'min field is optional' do
+  it 'min field is optional' do
     result = get_result(field: field, max: max)
     expect(result[field][:gte]).to be_nil
     expect(result[field][:lte]).to eq(max)
   end
 
-  xit 'raises error unless min or max present' do
+  it 'raises error unless min or max present' do
     expect{subject.new(field: field)}.to raise_error
   end
 

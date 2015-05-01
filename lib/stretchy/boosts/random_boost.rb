@@ -10,9 +10,9 @@ module Stretchy
       # randomizes order (somewhat) consistently per-user
       # http://www.elastic.co/guide/en/elasticsearch/guide/current/random-scoring.html
 
-      def initialize(seed, weight = DEFAULT_WEIGHT)
+      def initialize(seed, weight = nil)
         @seed   = seed
-        @weight = weight
+        @weight = weight || DEFAULT_WEIGHT
         validate!
       end
 

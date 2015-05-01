@@ -14,10 +14,10 @@ describe Stretchy::Filters::ExistsFilter do
     expect(result[:field]).to eq(field)
   end
 
-  xit 'raises an error unless field is non-empty string' do
+  it 'raises an error unless field is non-empty string' do
     expect{subject.new}.to raise_error
     expect{subject.new('')}.to raise_error
-    expect{subject.new([field])}.to raise_error
+    expect{subject.new([''])}.to raise_error
   end
 
 end

@@ -29,9 +29,21 @@ module Stretchy
         end
       end
 
+      def require_one(options = {})
+        if options.values.all?{|v| self.class.is_empty?(v) }
+          raise Stretchy::Errors::ContractError.new("One of #{options.keys.join(', ')} must be present")
+        end
+      end
+
       module ClassMethods
 
         attr_reader :contracts
+
+        def is_empty?(value)
+          value.nil? ||
+          (value.respond_to?(:any?) && !value.any?) ||
+          (value.respond_to?(:length) && value.length == 0)
+        end
 
         def contract(var, options = {})
           @contracts ||= {}
@@ -56,7 +68,7 @@ module Stretchy
           case type
           when :distance
             msg = "Expected #{name} to be a distance measure, but #{value} is not a valid distance"
-            fail_assertion(msg) unless value.match(DISTANCE_FORMAT)
+            fail_assertion(msg) unless String(value).match(DISTANCE_FORMAT)
           when :lat
             msg = "Expected #{name} to be between 90 and -90, but was #{value}"
             value = Float(value) rescue nil
@@ -71,6 +83,9 @@ module Stretchy
 
             msg = "Expected #{name} to be a string, symbol, or number, but was blank"
             fail_assertion(msg) if value.is_a?(String) && value.empty?
+          when Array
+            msg = "Expected #{name} to be one of #{type.map{|t| t.name}}, but got #{value.class.name}"
+            fail_assertion(msg) unless type.any?{|t| value.is_a?(t)}
           else
             msg = "Expected #{name} to be of type #{type}, but found #{value.class.name}"
             fail_assertion(msg) unless value.is_a?(type)

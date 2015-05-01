@@ -5,7 +5,7 @@ module Stretchy
       SCORE_MODES = %w(multiply sum avg first max min)
       BOOST_MODES = %w(multiply replace sum avg max min)
 
-      contract functions: {responds_to: :to_search, array: true},
+      contract functions: {type: Stretchy::Boosts::Base, array: true},
                    query: {type: Base},
                   filter: {type: Stretchy::Filters::Base},
               score_mode: {type: String, in: SCORE_MODES},

@@ -2,14 +2,14 @@ module Stretchy
   module Boosts
     class FilterBoost < Base
 
-      DEFAULT_WEIGHT = 1.2
+      attr_reader :filter, :weight
 
       contract filter: {type: Stretchy::Filters::Base},
                weight: {type: Numeric}
 
-      def initialize(filter:, weight: DEFAULT_WEIGHT)
-        @filter = filter
-        @weight = weight
+      def initialize(options = {})
+        @filter = options[:filter]
+        @weight = options[:weight] || DEFAULT_WEIGHT
         validate!
       end
 

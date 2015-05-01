@@ -3,13 +3,15 @@ module Stretchy
     class RangeFilter < Base
 
       contract field: {type: :field},
-                 min: {type: Numeric},
-                 max: {type: Numeric}
+                 min: {type: [Numeric, Time]},
+                 max: {type: [Numeric, Time]}
 
-      def initialize(field:, min:, max:)
-        @field = field
-        @min   = min
-        @max   = max
+      def initialize(options = {})
+        @field = options[:field]
+        @min   = options[:min]
+        @max   = options[:max]
+        validate!
+        require_one(min: @min, max: @max)
       end
 
       def to_search

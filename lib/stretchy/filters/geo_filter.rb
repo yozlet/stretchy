@@ -2,16 +2,16 @@ module Stretchy
   module Filters
     class GeoFilter < Base
 
-      contract distance: {type: :distance},
-                    lat: {type: :lat},
-                    lng: {type: :lng},
-                  field: {type: :field}
+      contract distance: {type: :distance, required: true},
+                    lat: {type: :lat, required: true},
+                    lng: {type: :lng, required: true},
+                  field: {type: :field, required: true}
 
-      def initialize(field: 'coords', distance: '50km', lat:, lng:)
-        @field    = field
-        @distance = distance
-        @lat      = lat
-        @lng      = lng
+      def initialize(options = {})
+        @field    = options[:field]
+        @distance = options[:distance]
+        @lat      = options[:lat]
+        @lng      = options[:lng]
         validate!
       end
 
