@@ -2,6 +2,10 @@ module Stretchy
   module Clauses
     class BoostClause < Base
 
+      extend Forwardable
+
+      delegate [:geo, :range] => :where
+
       def initialize(base, options = {})
         super(base)
         @inverse = options.delete(:inverse)
@@ -13,6 +17,18 @@ module Stretchy
 
       def where(options = {})
         BoostWhereClause.new(self, options)
+      end
+
+      def near(options = {})
+        options.each do |field, params|
+          if params.is_a?(Time)
+            
+          elsif params.is_a?(Numeric)
+
+          elsif params.is_a?(Hash) && params([:lat] || params[:latitude])
+
+          end
+        end
       end
 
       def random(*args)
