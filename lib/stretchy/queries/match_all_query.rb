@@ -1,3 +1,5 @@
+require 'stretchy/queries/base'
+
 module Stretchy
   module Queries
     class MatchAllQuery < Base

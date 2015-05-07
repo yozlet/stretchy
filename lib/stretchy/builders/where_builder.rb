@@ -173,18 +173,15 @@ module Stretchy
           Stretchy::Filters::ExistsFilter.new(field)
         end
 
-        filters += ranges.map do |field, values|
-          Stretchy::Filters::RangeFilter.new(
-            field:  field,
-            min:    values[:min],
-            max:    values[:max]
-          )
+        filters += ranges.map do |field, value|
+          Stretchy::Filters::RangeFilter.new(field: field, stretchy_range: value)
         end
 
         filters += geos.map do |field, values|
           Stretchy::Filters::GeoFilter.new(
             field: field,
             distance: values[:distance],
+            geo_point: values[:geo_point],
             lat: values[:lat],
             lng: values[:lng]
           )

@@ -1,3 +1,5 @@
+require 'stretchy/utils/contract'
+
 module Stretchy
   module Queries
     class Base

@@ -1,17 +1,18 @@
+require 'stretchy/filters/base'
+require 'stretchy/types/geo_point'
+
 module Stretchy
   module Filters
     class GeoFilter < Base
 
       contract distance: {type: :distance, required: true},
-                    lat: {type: :lat, required: true},
-                    lng: {type: :lng, required: true},
+              geo_point: {type: Stretchy::Types::GeoPoint, required: true},
                   field: {type: :field, required: true}
 
       def initialize(options = {})
-        @field    = options[:field]
-        @distance = options[:distance]
-        @lat      = options[:lat]
-        @lng      = options[:lng]
+        @field      = options[:field]
+        @distance   = options[:distance]
+        @geo_point  = options[:geo_point] || Stretchy::Types::GeoPoint.new(options)
         validate!
       end
 
@@ -19,10 +20,7 @@ module Stretchy
         {
           geo_distance: {
             distance: @distance,
-            @field => {
-              lat: @lat,
-              lon: @lng
-            }
+            @field => @geo_point.to_search
           }
         }
       end

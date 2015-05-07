@@ -14,6 +14,7 @@ describe Stretchy::Builders::WhereBuilder do
 
   context 'bool filter' do
     let(:result) { subject.build.to_search }
+    let(:range_type) { Stretchy::Types::Range }
 
     context 'single positive filter' do
       it 'matches regular terms' do
@@ -22,19 +23,19 @@ describe Stretchy::Builders::WhereBuilder do
       end
 
       it 'matches a range' do
-        subject.ranges[:fieldname] = { min: 27, max: 33 }
+        subject.ranges[:fieldname] = range_type.new(27..33)
         expect(result[:range][:fieldname][:gte]).to eq(27)
         expect(result[:range][:fieldname][:lte]).to eq(33)
       end
 
       it 'matches a min range' do
-        subject.ranges[:fieldname] = { min: 27 }
+        subject.ranges[:fieldname] = range_type.new(min: 27)
         expect(result[:range][:fieldname][:gte]).to eq(27)
         expect(result[:range][:fieldname][:lte]).to be_nil
       end
 
       it 'matches a max range' do
-        subject.ranges[:fieldname] = { max: 33 }
+        subject.ranges[:fieldname] = range_type.new(max: 33)
         expect(result[:range][:fieldname][:gte]).to be_nil
         expect(result[:range][:fieldname][:lte]).to eq(33)
       end
@@ -73,19 +74,19 @@ describe Stretchy::Builders::WhereBuilder do
       end
       
       it 'excludes a range' do
-        subject.antiranges[:fieldname] = { min: 27, max: 33 }
+        subject.antiranges[:fieldname] = range_type.new(min: 27, max: 33)
         expect(result[:range][:fieldname][:gte]).to eq(27)
         expect(result[:range][:fieldname][:lte]).to eq(33)
       end
 
       it 'excludes a min range' do
-        subject.antiranges[:fieldname] = { min: 27 }
+        subject.antiranges[:fieldname] = range_type.new(min: 27)
         expect(result[:range][:fieldname][:gte]).to eq(27)
         expect(result[:range][:fieldname][:lte]).to be_nil
       end
 
       it 'excludes a max range' do
-        subject.antiranges[:fieldname] = { max: 33 }
+        subject.antiranges[:fieldname] = range_type.new(max: 33)
         expect(result[:range][:fieldname][:gte]).to be_nil
         expect(result[:range][:fieldname][:lte]).to eq(33)
       end
@@ -144,37 +145,44 @@ describe Stretchy::Builders::WhereBuilder do
         end
 
         it 'accepts should range' do
-          subject.shouldranges[:fieldname] = { min: 27, max: 34 }
+          subject.shouldranges[:fieldname] = range_type.new(min: 27, max: 34)
           expect(result[:range][:fieldname]).to eq(gte: 27, lte: 34)
         end
 
         it 'accepts should range with min' do
-          subject.shouldranges[:fieldname] = { min: 27 }
+          subject.shouldranges[:fieldname] = range_type.new(min: 27)
           expect(result[:range][:fieldname]).to eq(gte: 27)
         end
 
         it 'accepts should range with max' do
-          subject.shouldranges[:fieldname] = { max: 34 }
+          subject.shouldranges[:fieldname] = range_type.new(max: 34)
           expect(result[:range][:fieldname]).to eq(lte: 34)
         end
 
         it 'accepts should not range' do
-          subject.shouldnotranges[:fieldname] = { min: 27, max: 34 }
+          subject.shouldnotranges[:fieldname] = range_type.new(min: 27, max: 34)
           expect(result[:not][:range][:fieldname]).to eq(gte: 27, lte: 34)
         end
 
         it 'accepts should not range with min' do
-          subject.shouldnotranges[:fieldname] = { min: 27 }
+          subject.shouldnotranges[:fieldname] = range_type.new(min: 27)
           expect(result[:not][:range][:fieldname]).to eq(gte: 27)
         end
 
         it 'accepts should not range with max' do
-          subject.shouldnotranges[:fieldname] = { max: 27 }
+          subject.shouldnotranges[:fieldname] = range_type.new(max: 27)
           expect(result[:not][:range][:fieldname]).to eq(lte: 27)
         end
 
         it 'accepts a geo distance' do
           subject.shouldgeos[:fieldname] = { lat: 33, lng: 42, distance: '93km' }
+          results = result[:geo_distance]
+          expect(results[:fieldname]).to eq(lat: 33, lon: 42)
+          expect(results[:distance]).to eq('93km')
+        end
+
+        it 'accepts a geo distance' do
+          subject.shouldgeos[:fieldname] = { geo_point: Stretchy::Types::GeoPoint.new(lat: 33, lng: 42), distance: '93km' }
           results = result[:geo_distance]
           expect(results[:fieldname]).to eq(lat: 33, lon: 42)
           expect(results[:distance]).to eq('93km')

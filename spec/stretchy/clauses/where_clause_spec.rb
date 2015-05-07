@@ -21,10 +21,9 @@ describe Stretchy::Clauses::WhereClause do
       expect(instance.match_builder.matches[:symbol_field]).to include(:my_symbol)
       expect(instance.where_builder.terms[:number_field]).to include(86)
       expect(instance.where_builder.antiexists).to include(:nil_field)
-      expect(instance.where_builder.ranges[:range_field]).to eq(
-        min: 27,
-        max: 34
-      )
+      expect(instance.where_builder.ranges[:range_field]).to be_a(Stretchy::Types::Range)
+      expect(instance.where_builder.ranges[:range_field].min).to eq(27)
+      expect(instance.where_builder.ranges[:range_field].max).to eq(34)
       [:shouldterms, :shouldnotterms, :shouldranges, 
        :shouldnotranges, :shouldgeos, :shouldnotgeos,
        :shouldexists, :shouldnotexists].each do |field|
@@ -78,17 +77,24 @@ describe Stretchy::Clauses::WhereClause do
 
     specify 'geo field' do
       instance = subject.geo(:geo_field, distance: '27km', lat: 34.3, lng: 28.2)
-      expect(instance.where_builder.geos[:geo_field]).to eq(distance: '27km', lat: 34.3, lng: 28.2)
+      expect(instance.where_builder.geos[:geo_field][:distance]).to eq('27km')
+      expect(instance.where_builder.geos[:geo_field][:geo_point]).to be_a(Stretchy::Types::GeoPoint)
+      expect(instance.where_builder.geos[:geo_field][:geo_point].lat).to eq(34.3)
+      expect(instance.where_builder.geos[:geo_field][:geo_point].lon).to eq(28.2)
     end
 
     specify 'range with min' do
       instance = subject.range(:range_field, min: 88)
-      expect(instance.where_builder.ranges[:range_field]).to eq(min: 88, max: nil)
+      expect(instance.where_builder.ranges[:range_field]).to be_a(Stretchy::Types::Range)
+      expect(instance.where_builder.ranges[:range_field].min).to eq(88)
+      expect(instance.where_builder.ranges[:range_field].max).to be_nil
     end
 
     specify 'range with max' do
       instance = subject.range(:range_field, max: 99)
-      expect(instance.where_builder.ranges[:range_field]).to eq(min: nil, max: 99)
+      expect(instance.where_builder.ranges[:range_field]).to be_a(Stretchy::Types::Range)
+      expect(instance.where_builder.ranges[:range_field].min).to be_nil
+      expect(instance.where_builder.ranges[:range_field].max).to eq(99)
     end
 
     specify 'inverse options' do

@@ -1,3 +1,5 @@
+require 'stretchy/filters/base'
+
 module Stretchy
   module Filters
     class OrFilter < Base

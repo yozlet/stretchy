@@ -1,9 +1,11 @@
+require 'stretchy/boosts/base'
+
 module Stretchy
   module Boosts
     class FieldDecayBoost < Base
 
       contract field: {type: :field},
-              origin: {required: true},
+              origin: {required: true, type: [Numeric, Time]},
                scale: {required: true},
                decay: {type: :decay}
 

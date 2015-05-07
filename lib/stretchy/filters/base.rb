@@ -1,3 +1,5 @@
+require 'stretchy/utils/contract'
+
 module Stretchy
   module Filters
     class Base

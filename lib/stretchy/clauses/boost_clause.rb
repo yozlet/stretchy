@@ -1,3 +1,5 @@
+require 'stretchy/clauses/base'
+
 module Stretchy
   module Clauses
     class BoostClause < Base

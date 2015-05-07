@@ -32,7 +32,7 @@ module Stretchy
 
       def require_one(options = {})
         if options.values.all?{|v| self.class.is_empty?(v) }
-          raise Stretchy::Errors::ContractError.new("One of #{options.keys.join(', ')} must be present")
+          raise Stretchy::Errors::ContractError.new("One of #{options.keys.join(', ')} must be present, found: #{options}")
         end
       end
 

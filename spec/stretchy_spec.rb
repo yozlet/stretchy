@@ -20,7 +20,7 @@ describe Stretchy do
     let(:time_range) { min_time..max_time }
 
     specify 'on ridiculous giant queries' do
-      clause = Stretchy::Clauses::Base.new(type: FIXTURE_TYPE)
+      clause = Stretchy.query(type: FIXTURE_TYPE)
                 .limit(20)
                 .offset(1)
                 .match('all_match')

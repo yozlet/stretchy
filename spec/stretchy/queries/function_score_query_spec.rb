@@ -16,6 +16,8 @@ describe Stretchy::Queries::FunctionScoreQuery do
   let(:geo_boost) do
     Stretchy::Boosts::GeoBoost.new(
       field: 'coords',
+      lat: 27.7,
+      lng: 33.3,
       offset: '1km',
       scale: '20km'
     )

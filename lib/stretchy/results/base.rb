@@ -43,3 +43,5 @@ module Stretchy
     end
   end
 end
+
+require 'stretchy/results/null_results'

@@ -34,30 +34,30 @@ describe Stretchy::Boosts::GeoBoost do
     expect(result[:weight]).to eq(weight)
   end
 
-  it 'requires only lat and lng params, with defaults for the rest' do
-    result = get_result(lat: lat, lng: lng)
+  it 'requires lat, lng, field and scale params' do
+    result = get_result(field: field, scale: scale, lat: lat, lng: lng)
     expect(result[:gauss][field][:origin][:lat]).to eq(lat)
     expect(result[:gauss][field][:origin][:lon]).to eq(lng)
+    expect(result[:gauss][field][:scale]).to eq(scale)
     expect(result[:gauss][field][:offset]).to eq(Stretchy::Boosts::GeoBoost::DEFAULTS[:offset])
-    expect(result[:gauss][field][:scale]).to eq(Stretchy::Boosts::GeoBoost::DEFAULTS[:scale])
     expect(result[:gauss][field][:decay]).to eq(Stretchy::Boosts::GeoBoost::DEFAULTS[:decay])
     expect(result[:weight]).to eq(Stretchy::Boosts::GeoBoost::DEFAULTS[:weight])
   end
 
   it 'raises error unless lat and lng are valid coords' do
-    expect{subject.new(lat: 'wat', lng: lng)}.to raise_error
+    expect{subject.new(field: field, lat: 'wat', lng: lng)}.to raise_error
   end
 
   it 'raises error unless lat and lng exist on Earth' do
-    expect{subject.new(lat: lat, lng: 999)}.to raise_error
+    expect{subject.new(field: field, lat: lat, lng: 999)}.to raise_error
   end
 
   it 'raises error unless offset and scale are appropriate type' do
-    expect{subject.new(lat: lat, lng: lng, offset: 'invalid')}.to raise_error
-    expect{subject.new(lat: lat, lng: lng, scale: 'invalid')}.to raise_error
+    expect{subject.new(field: field, lat: lat, lng: lng, offset: 'invalid')}.to raise_error
+    expect{subject.new(field: field, lat: lat, lng: lng, scale: 'invalid')}.to raise_error
   end
 
   it 'raises error unless weight is numeric' do
-    expect{subject.new(lat: lat, lng: lng, weight: 'invalid')}.to raise_error
+    expect{subject.new(field: field, lat: lat, lng: lng, weight: 'invalid')}.to raise_error
   end
 end

@@ -1,3 +1,5 @@
+require 'stretchy/clauses/base'
+
 module Stretchy
   module Clauses
     class WhereClause < Base
@@ -18,22 +20,15 @@ module Stretchy
       end
 
       def range(field, options = {})
-        min = max = nil
-        
-        case options
-        when Hash
-          min   = options[:min]
-          max   = options[:max]
-          get_storage(:ranges)[field] = { min: min, max: max }
-        when Range
-          add_param(field, options)
-        end
-
+        get_storage(:ranges)[field] = Stretchy::Types::Range.new(options)
         self
       end
 
       def geo(field, options = {})
-        add_geo(field, options)
+        get_storage(:geos)[field] = {
+          distance:  options[:distance],
+          geo_point: Stretchy::Types::GeoPoint.new(options)
+        }
         self
       end
 
@@ -111,10 +106,6 @@ module Stretchy
           end
         end
 
-        def add_geo(field, options = {})
-          get_storage(:geos)[field] = options
-        end
-
         def add_param(field, param)
           case param
           when nil
@@ -122,7 +113,7 @@ module Stretchy
           when String, Symbol
             get_storage(:matches)[field] += Array(param)
           when Range
-            get_storage(:ranges)[field] = { min: param.min, max: param.max }
+            get_storage(:ranges)[field] = Stretchy::Types::Range.new(param)
           else
             get_storage(:terms)[field] += Array(param)
           end

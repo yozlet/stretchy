@@ -1,3 +1,6 @@
+require 'stretchy/filters/base'
+require 'stretchy/queries/base'
+
 module Stretchy
   module Filters
     class QueryFilter < Base

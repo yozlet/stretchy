@@ -1,11 +1,12 @@
 $LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
 require 'stretchy'
+require 'awesome_print'
 
 SPEC_INDEX    = 'stretchy_test'
 FIXTURE_TYPE  = 'game_dev'
 FIXTURES      = {}
 
-Dir[File.join(File.dirname(File.expand_path(__FILE__)), 'fixtures', '**', '*.json')].each do |path|
+Gem.find_files('**/*.json').each do |path|
   name = File.basename(path, '.json').to_sym
   FIXTURES[name] = JSON.parse(File.read(path))
 end

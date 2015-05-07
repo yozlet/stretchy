@@ -1,12 +1,10 @@
 require 'stretchy/utils/contract'
 
 module Stretchy
-  module Boosts
+  module Types
     class Base
 
       include Stretchy::Utils::Contract
-
-      DEFAULT_WEIGHT = 1.2
 
       def initialize
         raise "Override this in subclass"
