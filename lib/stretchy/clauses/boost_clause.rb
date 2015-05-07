@@ -22,16 +22,15 @@ module Stretchy
       end
 
       def near(options = {})
-        options.each do |field, params|
-          if params.is_a?(Time)
-            
-          elsif params.is_a?(Numeric)
+        if options[:lat] || options[:latitude]  ||
+           options[:lng] || options[:longitude] || options[:lon]
 
-          elsif params.is_a?(Hash) && params([:lat] || params[:latitude])
-
-          end
+          options[:origin] = Stretchy::Types::GeoPoint.new(options)
         end
+        @boost_builder.functions << Stretchy::Boosts::FieldDecayBoost.new(options)
+        self
       end
+      alias :geo :near
 
       def random(*args)
         @boost_builder.functions << Stretchy::Boosts::RandomBoost.new(*args)

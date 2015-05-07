@@ -61,7 +61,7 @@ module Stretchy
 
         def assert_required(name, value, options)
           msg = "Expected to have param #{name}, but got nil"
-          fail_assertion(msg) if msg.nil?
+          fail_assertion(msg) if is_empty?(value)
         end
 
         def assert_type(name, value, options)

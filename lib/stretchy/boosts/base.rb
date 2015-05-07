@@ -6,7 +6,8 @@ module Stretchy
 
       include Stretchy::Utils::Contract
 
-      DEFAULT_WEIGHT = 1.2
+      DEFAULT_WEIGHT    = 1.2
+      DEFAULT_DECAY_FN  = :gauss
 
       def initialize
         raise "Override this in subclass"

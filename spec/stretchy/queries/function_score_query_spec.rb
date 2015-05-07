@@ -14,10 +14,9 @@ describe Stretchy::Queries::FunctionScoreQuery do
   end
 
   let(:geo_boost) do
-    Stretchy::Boosts::GeoBoost.new(
+    Stretchy::Boosts::FieldDecayBoost.new(
       field: 'coords',
-      lat: 27.7,
-      lng: 33.3,
+      origin: Stretchy::Types::GeoPoint.new(lat: 27.7, lng: 33.3),
       offset: '1km',
       scale: '20km'
     )
