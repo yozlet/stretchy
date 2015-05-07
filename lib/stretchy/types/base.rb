@@ -1,7 +1,7 @@
 require 'stretchy/utils/contract'
 
 module Stretchy
-  module Filters
+  module Types
     class Base
 
       include Stretchy::Utils::Contract

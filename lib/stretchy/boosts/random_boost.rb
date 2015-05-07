@@ -1,3 +1,5 @@
+require 'stretchy/boosts/base'
+
 module Stretchy
   module Boosts
     class RandomBoost < Base

@@ -1,3 +1,5 @@
+require 'stretchy/clauses/base'
+
 module Stretchy
   module Clauses
     class MatchClause < Base
@@ -10,15 +12,21 @@ module Stretchy
         super(base)
         if opts_or_str.is_a?(Hash)
           @inverse     = opts_or_str.delete(:inverse) || options.delete(:inverse)
+          @should      = opts_or_str.delete(:should)  || options.delete(:should)
           add_params(options.merge(opts_or_str))
         else
           @inverse     = options.delete(:inverse)
+          @should      = options.delete(:should)
           add_params(options.merge('_all' => opts_or_str))
         end
       end
 
       def not(opts_or_str = {}, options = {})
-        self.class.new(self, opts_or_str, options.merge(inverse: !@inverse))
+        self.class.new(self, opts_or_str, options.merge(inverse: true, should: should?))
+      end
+
+      def should(opts_or_str = {}, options = {})
+        self.class.new(self, opts_or_str, options.merge(should: true))
       end
 
       def to_boost(weight = nil)
@@ -31,7 +39,27 @@ module Stretchy
         )
       end
 
+      def should?
+        !!@should
+      end
+
       private
+
+        def get_storage
+          if inverse?
+            if should?
+              @match_builder.shouldnotmatches
+            else
+              @match_builder.antimatches
+            end
+          else
+            if should?
+              @match_builder.shouldmatches
+            else
+              @match_builder.matches
+            end
+          end
+        end
 
         def add_params(params = {})
           case params
@@ -45,11 +73,7 @@ module Stretchy
         end
 
         def add_param(field, param)
-          if inverse?
-            @match_builder.antimatches[field] += Array(param)
-          else
-            @match_builder.matches[field]     += Array(param)
-          end
+          get_storage[field] += Array(param)
         end
 
     end

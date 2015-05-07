@@ -17,6 +17,7 @@ describe Stretchy::Utils::Contract do
     contract :lat,          type: :lat
     contract :lng,          type: :lng
     contract :field,        type: :field
+    contract :req,          required: true
 
     def initialize(options = {})
       options.each do |key, val|
@@ -46,7 +47,8 @@ describe Stretchy::Utils::Contract do
       dist:         '20km',
       lat:          45.01,
       lng:          133.21,
-      field:        :json_field
+      field:        :json_field,
+      req:          true
     }
   end
 
@@ -106,6 +108,13 @@ describe Stretchy::Utils::Contract do
       check_raises_error matched: '50 credits'
       check_raises_error matched_arr: '50 units'
       check_raises_error matched_arr: ['50 credits']
+    end
+
+    it 'required check fails' do
+      check_raises_error req: nil
+      check_raises_error req: []
+      check_raises_error req: {}
+      check_raises_error req: ''
     end
   end
 

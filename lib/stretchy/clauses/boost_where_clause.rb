@@ -1,3 +1,5 @@
+require 'stretchy/clauses/boost_clause'
+
 module Stretchy
   module Clauses
     class BoostWhereClause < BoostClause

@@ -10,9 +10,8 @@ module Stretchy
       attr_accessor :match_builder, :where_builder, :boost_builder, 
                     :aggregate_builder, :inverse, :type, :index_name
 
-      alias :inverse? :inverse
-
       delegate [:response, :results, :ids, :hits, :took, :shards, :total, :max_score] => :query_results
+      delegate [:range, :geo] => :where
 
       def initialize(base_or_opts = nil, options = {})
         if base_or_opts && !base_or_opts.is_a?(Hash)
@@ -68,6 +67,26 @@ module Stretchy
 
       def boost(options = {})
         BoostClause.new(self, options)
+      end
+
+      def not(opts_or_string = {}, opts = {})
+        if opts_or_string.is_a?(Hash)
+          WhereClause.new(self, opts_or_string.merge(inverse: true))
+        else
+          MatchClause.new(self, opts_or_string, opts.merge(inverse: true))
+        end
+      end
+
+      def should(opts_or_string = {}, opts = {})
+        if opts_or_string.is_a?(Hash)
+          WhereClause.new(self, opts_or_string.merge(should: true))
+        else
+          MatchClause.new(self, opts_or_string, opts.merge(should: true))
+        end
+      end
+
+      def inverse?
+        !!@inverse
       end
 
       def to_search

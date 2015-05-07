@@ -4,6 +4,7 @@ module Stretchy
 
       ASSERTIONS = [:type, :responds_to, :in, :matches, :required]
       DISTANCE_FORMAT = /^(\d+)(km|mi)$/
+      DECAY_FUNCTIONS = [:gauss, :linear, :exp]
 
       def self.included(base)
         base.send(:extend, ClassMethods)
@@ -31,7 +32,7 @@ module Stretchy
 
       def require_one(options = {})
         if options.values.all?{|v| self.class.is_empty?(v) }
-          raise Stretchy::Errors::ContractError.new("One of #{options.keys.join(', ')} must be present")
+          raise Stretchy::Errors::ContractError.new("One of #{options.keys.join(', ')} must be present, found: #{options}")
         end
       end
 
@@ -60,7 +61,7 @@ module Stretchy
 
         def assert_required(name, value, options)
           msg = "Expected to have param #{name}, but got nil"
-          fail_assertion(msg) if msg.nil?
+          fail_assertion(msg) if is_empty?(value)
         end
 
         def assert_type(name, value, options)
@@ -83,6 +84,9 @@ module Stretchy
 
             msg = "Expected #{name} to be a string, symbol, or number, but was blank"
             fail_assertion(msg) if value.is_a?(String) && value.empty?
+          when :decay
+            msg = "Expected #{name} to be one of #{DECAY_FUNCTIONS.join(', ')}, but got #{value}"
+            fail_assertion(msg) unless DECAY_FUNCTIONS.any?{|f| f == value || f.to_s == value }
           when Array
             msg = "Expected #{name} to be one of #{type.map{|t| t.name}}, but got #{value.class.name}"
             fail_assertion(msg) unless type.any?{|t| value.is_a?(t)}

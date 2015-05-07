@@ -1,4 +1,3 @@
-require 'json'
 module Stretchy
   module Utils
     module ClientActions
@@ -16,6 +15,10 @@ module Stretchy
 
       def count
         client.cat.count(index: index_name).split(' ')[2].to_i
+      end
+
+      def query(*args, &block)
+        Stretchy::Clauses::Base.new(*args, &block)
       end
 
       def search(type:, body:, fields: nil)

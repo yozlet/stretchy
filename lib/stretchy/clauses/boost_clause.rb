@@ -1,6 +1,12 @@
+require 'stretchy/clauses/base'
+
 module Stretchy
   module Clauses
     class BoostClause < Base
+
+      extend Forwardable
+
+      delegate [:geo, :range] => :where
 
       def initialize(base, options = {})
         super(base)
@@ -14,6 +20,17 @@ module Stretchy
       def where(options = {})
         BoostWhereClause.new(self, options)
       end
+
+      def near(options = {})
+        if options[:lat] || options[:latitude]  ||
+           options[:lng] || options[:longitude] || options[:lon]
+
+          options[:origin] = Stretchy::Types::GeoPoint.new(options)
+        end
+        @boost_builder.functions << Stretchy::Boosts::FieldDecayBoost.new(options)
+        self
+      end
+      alias :geo :near
 
       def random(*args)
         @boost_builder.functions << Stretchy::Boosts::RandomBoost.new(*args)

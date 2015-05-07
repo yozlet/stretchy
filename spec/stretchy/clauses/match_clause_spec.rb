@@ -11,29 +11,25 @@ describe Stretchy::Clauses::MatchClause do
   context 'initializes with' do
     specify 'nil' do
       instance = described_class.new(base)
-      expect(instance).to be_a(base.class)
       expect(instance.match_builder.any?).to eq(false)
-      expect(instance.inverse?).to be_nil
+      expect(instance.inverse?).to eq(false)
     end
 
     specify 'string' do
       instance = described_class.new(base, 'match string')
-      expect(instance).to be_a(base.class)
       expect(instance.match_builder.matches['_all']).to include('match string')
-      expect(instance.inverse?).to be_nil
+      expect(instance.inverse?).to eq(false)
     end
 
     specify 'options' do
       instance = described_class.new(base, field_one: 'one', field_two: 'two')
-      expect(instance).to be_a(base.class)
       expect(instance.match_builder.matches[:field_one]).to include('one')
       expect(instance.match_builder.matches[:field_two]).to include('two')
-      expect(instance.inverse?).to be_nil
+      expect(instance.inverse?).to eq(false)
     end
 
     specify 'inverse options' do
       instance = described_class.new(base, field_one: 'one', field_two: 'two', inverse: true)
-      expect(instance).to be_a(base.class)
       expect(instance.match_builder.antimatches[:field_one]).to include('one')
       expect(instance.match_builder.antimatches[:field_two]).to include('two')
       expect(instance.inverse?).to eq(true)
@@ -41,9 +37,29 @@ describe Stretchy::Clauses::MatchClause do
 
     specify 'options and base options' do
       instance = described_class.new(base, {field_one: 'one', field_two: 'two'}, inverse: true)
-      expect(instance).to be_a(base.class)
       expect(instance.match_builder.antimatches[:field_one]).to include('one')
       expect(instance.match_builder.antimatches[:field_two]).to include('two')
+      expect(instance.inverse?).to eq(true)
+    end
+
+    specify 'should options' do
+      instance = described_class.new(base, {field_one: 'one', should: true})
+      expect(instance.match_builder.shouldmatches[:field_one]).to include('one')
+      expect(instance.should?).to eq(true)
+      expect(instance.inverse?).to eq(false)
+    end
+
+    specify 'should + inverse' do
+      instance = described_class.new(base, field_one: 'one', should: true, inverse: true)
+      expect(instance.match_builder.shouldnotmatches[:field_one]).to include('one')
+      expect(instance.should?).to eq(true)
+      expect(instance.inverse?).to eq(true)
+    end
+
+    specify 'should + inverse secondary' do
+      instance = described_class.new(base, {field_one: 'one'}, should: true, inverse: true)
+      expect(instance.match_builder.shouldnotmatches[:field_one]).to include('one')
+      expect(instance.should?).to eq(true)
       expect(instance.inverse?).to eq(true)
     end
   end
@@ -51,6 +67,10 @@ describe Stretchy::Clauses::MatchClause do
   it 'inverts via not' do
     expect(subject.not).to be_a(described_class)
     expect(subject.not.inverse?).to eq(true)
+  end
+
+  it 'switches via should' do
+    expect(subject.should.should?).to eq(true)
   end
 
   it 'initializes inverse via string' do
@@ -65,6 +85,34 @@ describe Stretchy::Clauses::MatchClause do
     expect(instance).to be_a(described_class)
     expect(instance.inverse?).to eq(true)
     expect(instance.match_builder.antimatches[:string_field]).to include('not matching string')
+  end
+
+  it 'chains not options' do
+    instance = subject.not(field_one: 'one').match('match_all')
+    builder = subject.match_builder
+    expect(builder.matches['_all']).to include('match_all')
+    expect(builder.antimatches[:field_one]).to include('one')
+  end
+
+  it 'chains should options' do
+    instance = subject.should(field_one: 'one').match('match_all')
+    builder = subject.match_builder
+    expect(builder.matches['_all']).to include('match_all')
+    expect(builder.shouldmatches[:field_one]).to include('one')
+  end
+
+  it 'chains should and not options' do
+    instance = subject.should.not(field_one: 'one').should(field_two: 'two')
+    builder = subject.match_builder
+    expect(builder.shouldmatches[:field_two]).to include('two')
+    expect(builder.shouldnotmatches[:field_one]).to include('one')
+  end
+
+  it 'chains should and match options' do
+    instance = subject.should(field_one: 'one').not(field_two: 'two').match('match_all')
+    builder = subject.match_builder
+    expect(builder.shouldmatches[:field_one]).to include('one')
+    expect(builder.shouldnotmatches[:field_two]).to include('two')
   end
 
   it 'builds a query filter boost' do

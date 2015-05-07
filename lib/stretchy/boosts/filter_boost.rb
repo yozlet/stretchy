@@ -1,3 +1,6 @@
+require 'stretchy/boosts/base'
+require 'stretchy/filters/base'
+
 module Stretchy
   module Boosts
     class FilterBoost < Base

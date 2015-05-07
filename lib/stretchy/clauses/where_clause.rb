@@ -1,3 +1,5 @@
+require 'stretchy/clauses/base'
+
 module Stretchy
   module Clauses
     class WhereClause < Base
@@ -9,32 +11,33 @@ module Stretchy
       def initialize(base, options = {})
         super(base)
         @inverse = options.delete(:inverse)
+        @should  = options.delete(:should)
         add_params(options)
       end
 
-      def range(field, options = {})
-        min = max = nil
-        
-        case options
-        when Hash
-          min   = options[:min]
-          max   = options[:max]
-          store = inverse? ? @where_builder.antiranges : @where_builder.ranges
-          store[field] = { min: min, max: max }
-        when Range
-          add_param(field, options)
-        end
+      def should?
+        !!@should
+      end
 
+      def range(field, options = {})
+        get_storage(:ranges)[field] = Stretchy::Types::Range.new(options)
         self
       end
 
       def geo(field, options = {})
-        add_geo(field, options)
+        get_storage(:geos)[field] = {
+          distance:  options[:distance],
+          geo_point: Stretchy::Types::GeoPoint.new(options)
+        }
         self
       end
 
       def not(options = {})
-        self.class.new(self, options.merge(inverse: !@inverse))
+        self.class.new(self, options.merge(inverse: true, should: should?))
+      end
+
+      def should(options = {})
+        self.class.new(self, options.merge(should: true))
       end
 
       def to_boost(weight = nil)
@@ -68,6 +71,26 @@ module Stretchy
       end
 
       private
+
+        def get_storage(builder_field, is_inverse = nil)
+          is_inverse = inverse? if is_inverse.nil?
+          field = builder_field.to_s
+          if inverse? || is_inverse
+            if should?
+              field = "shouldnot#{field}"
+            else
+              field = "anti#{field}"
+            end
+          else
+            field = "should#{field}" if should?
+          end
+          
+          if field =~ /match/
+            @match_builder.send(field)
+          else
+            @where_builder.send(field)
+          end
+        end
         
         def add_params(options = {})
           options.each do |field, param|
@@ -83,28 +106,16 @@ module Stretchy
           end
         end
 
-        def add_geo(field, options = {})
-          store = inverse? ? @where_builder.antigeos : @where_builder.geos
-          store[field] = options
-        end
-
         def add_param(field, param)
           case param
           when nil
-            store = inverse? ? @where_builder.exists : @where_builder.empties
-            store << field
+            get_storage(:exists, true) << field
           when String, Symbol
-            if inverse?
-              @match_builder.antimatches[field] += Array(param)
-            else
-              @match_builder.matches[field] += Array(param)
-            end
+            get_storage(:matches)[field] += Array(param)
           when Range
-            store = inverse? ? @where_builder.antiranges : @where_builder.ranges
-            store[field] = { min: param.min, max: param.max }
+            get_storage(:ranges)[field] = Stretchy::Types::Range.new(param)
           else
-            store = inverse? ? @where_builder.antiterms : @where_builder.terms
-            store[field] += Array(param)
+            get_storage(:terms)[field] += Array(param)
           end
         end
 

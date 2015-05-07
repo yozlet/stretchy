@@ -1,3 +1,6 @@
+require 'stretchy/queries/base'
+require 'stretchy/boosts/base'
+
 module Stretchy
   module Queries
     class FunctionScoreQuery < Base

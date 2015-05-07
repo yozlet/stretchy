@@ -2,9 +2,9 @@ require 'stretchy/filters/base'
 
 module Stretchy
   module Filters
-    class AndFilter < Base
+    class OrFilter < Base
 
-      contract filters: {type: Stretchy::Filters::Base, array: true}
+      contract filters: {type: Base, array: true}
 
       def initialize(*args)
         @filters = args.flatten
@@ -13,7 +13,7 @@ module Stretchy
 
       def to_search
         {
-          and: @filters.map(&:to_search)
+          or: @filters.map(&:to_search)
         }
       end
 

@@ -1,26 +1,23 @@
+require 'stretchy/filters/base'
+require 'stretchy/types/range'
+
 module Stretchy
   module Filters
     class RangeFilter < Base
 
-      contract field: {type: :field},
-                 min: {type: [Numeric, Time]},
-                 max: {type: [Numeric, Time]}
+      contract field: {type: :field, required: true},
+               range: {type: Stretchy::Types::Range, required: true}
 
       def initialize(options = {})
         @field = options[:field]
-        @min   = options[:min]
-        @max   = options[:max]
+        @range = options[:stretchy_range] || Stretchy::Types::Range.new(options)
         validate!
-        require_one(min: @min, max: @max)
       end
 
       def to_search
-        range = {}
-        range[:gte] = @min if @min
-        range[:lte] = @max if @max
         {
           range: {
-            @field => range
+            @field => @range.to_search
           }
         }
       end

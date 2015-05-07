@@ -49,5 +49,48 @@ describe Stretchy::Clauses::BoostClause do
     specify 'match' do
       expect(subject.match).to be_a(Stretchy::Clauses::BoostMatchClause)
     end
+
+    describe 'near' do
+
+      specify 'geo point' do
+        clause = subject.near(field: :coords, lat: 23.3, lng: 28.8, scale: '10km')
+        fn = clause.boost_builder.functions.first
+        expect(fn).to be_a(Stretchy::Boosts::FieldDecayBoost)
+        expect(fn.field).to eq(:coords)
+        expect(fn.origin).to be_a(Stretchy::Types::GeoPoint)
+        expect(fn.origin.lat).to eq(23.3)
+        expect(fn.origin.lon).to eq(28.8)
+        expect(fn.scale).to eq('10km')
+      end
+
+      it 'is aliased as geo' do
+        clause = subject.geo(field: :coords, lat: 23.3, lng: 28.8, scale: '10km')
+        fn = clause.boost_builder.functions.first
+        expect(fn).to be_a(Stretchy::Boosts::FieldDecayBoost)
+        expect(fn.origin).to be_a(Stretchy::Types::GeoPoint)
+      end
+
+      specify 'date' do
+        time = Time.now
+        clause = subject.near(field: :published, origin: time, scale: '3d')
+        fn = clause.boost_builder.functions.first
+        
+        expect(fn).to be_a(Stretchy::Boosts::FieldDecayBoost)
+        expect(fn.field).to eq(:published)
+        expect(fn.origin).to eq(time)
+        expect(fn.scale).to eq('3d')
+      end
+
+      specify 'number' do
+        clause = subject.near(field: :rank, origin: 27, scale: 2)
+        fn = clause.boost_builder.functions.first
+        
+        expect(fn).to be_a(Stretchy::Boosts::FieldDecayBoost)
+        expect(fn.field).to eq(:rank)
+        expect(fn.origin).to eq(27)
+        expect(fn.scale).to eq(2)
+      end
+
+    end
   end
 end

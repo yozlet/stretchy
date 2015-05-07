@@ -1,3 +1,5 @@
+require 'stretchy/results/base'
+
 module Stretchy
   module Results
     class NullResults < Base
