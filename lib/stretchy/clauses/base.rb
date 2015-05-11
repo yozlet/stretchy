@@ -10,7 +10,7 @@ module Stretchy
       attr_accessor :match_builder, :where_builder, :boost_builder, 
                     :aggregate_builder, :inverse, :type, :index_name
 
-      delegate [:response, :results, :ids, :hits, :took, :shards, :total, :max_score] => :query_results
+      delegate [:request, :response, :results, :ids, :hits, :took, :shards, :total, :max_score] => :query_results
       delegate [:range, :geo] => :where
 
       def initialize(base_or_opts = nil, options = {})
@@ -106,7 +106,7 @@ module Stretchy
       end
 
       def query_results
-        @query_results ||= Stretchy::Results::Base.new(to_search.merge(from: @limit, size: @offset), type: @type)
+        @query_results ||= Stretchy::Results::Base.new(self)
       end
 
     end

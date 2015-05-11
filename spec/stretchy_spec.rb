@@ -89,7 +89,7 @@ describe Stretchy do
       
       result = clause.to_search
       # puts JSON.pretty_generate clause.to_search
-      expect{Stretchy.search(type: FIXTURE_TYPE, body: {query: result})}.to_not raise_error
+      expect(clause.results).to be_a(Array)
 
       filtered_query = result[:function_score][:query][:filtered]
       
