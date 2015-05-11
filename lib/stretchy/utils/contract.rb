@@ -17,6 +17,7 @@ module Stretchy
           
           if options[:array]
             self.class.assert_type(name, value, type: Array)
+            self.class.assert_required(name, value, {}) if options[:required]
           end
 
           ASSERTIONS.each do |assertion|
@@ -60,7 +61,7 @@ module Stretchy
         end
 
         def assert_required(name, value, options)
-          msg = "Expected to have param #{name}, but got nil"
+          msg = "Expected to have param #{name}, but got an #{value.inspect}"
           fail_assertion(msg) if is_empty?(value)
         end
 

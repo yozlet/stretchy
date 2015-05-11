@@ -18,6 +18,7 @@ describe Stretchy::Utils::Contract do
     contract :lng,          type: :lng
     contract :field,        type: :field
     contract :req,          required: true
+    contract :arr_req,      type: Numeric, array: true, required: true
 
     def initialize(options = {})
       options.each do |key, val|
@@ -48,7 +49,8 @@ describe Stretchy::Utils::Contract do
       lat:          45.01,
       lng:          133.21,
       field:        :json_field,
-      req:          true
+      req:          true,
+      arr_req:      [1, 2]
     }
   end
 
@@ -115,6 +117,12 @@ describe Stretchy::Utils::Contract do
       check_raises_error req: []
       check_raises_error req: {}
       check_raises_error req: ''
+    end
+
+    it 'empty array with require' do
+      check_raises_error arr_req: ['wat']
+      check_raises_error arr_req: []
+      check_raises_error arr_req: nil
     end
   end
 

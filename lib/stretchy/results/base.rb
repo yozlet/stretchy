@@ -2,14 +2,31 @@ module Stretchy
   module Results
     class Base
 
-      def initialize(request_json, options = {})
-        @request  = request_json
-        @index    = options[:index]
-        @type     = options[:type]
+      extend Forwardable
+
+      attr_reader :clause, :index_name
+
+      delegate [:type] => :clause
+
+      def initialize(clause)
+        @clause     = clause
+        @index_name = clause.index_name || Stretchy.index_name
+      end
+
+      def limit
+        clause.get_limit
+      end
+
+      def offset
+        clause.get_offset
+      end
+
+      def request
+        @request ||= {query: clause.to_search}
       end
 
       def response
-        @response ||= Stretchy.search(type: @type, body: request_json)
+        @response ||= Stretchy.search(type: type, body: request, from: offset, size: limit)
       end
 
       def ids
@@ -43,5 +60,3 @@ module Stretchy
     end
   end
 end
-
-require 'stretchy/results/null_results'

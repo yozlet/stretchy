@@ -21,20 +21,28 @@ module Stretchy
         Stretchy::Clauses::Base.new(*args, &block)
       end
 
-      def search(type:, body:, fields: nil)
-        options = { index: index_name, type: type, body: body }
-        options[:fields] = fields if fields.is_a?(Array)
+      def search(options = {})
+        params = {}
+        params[:index]  = options[:index] || index_name
+        params[:type]   = options[:type]
+        params[:fields] = Array(options[:fields]) if options[:fields]
+        params[:body]   = options[:body]
 
-        client.search(options)
+        client.search(params)
       end
 
-      def index(type:, body:, id: nil)
-        id ||= body['id'] || body['_id'] || body[:id] || body[:_id]
-        client.index(index: index_name, type: type, id: id, body: body)
+      def index(options = {})
+        index = options[:index] || index_name
+        type  = options[:type]
+        body  = options[:body]
+        id    = options[:id] || options['id'] || body['id'] || body['_id'] || body[:id] || body[:_id]
+        client.index(index: index, type: type, id: id, body: body)
       end
 
-      def bulk(type:, documents:)
-        requests = documents.flat_map do |document|
+      def bulk(options = {})
+        type      = options[:type]
+        documents = options[:documents]
+        requests  = documents.flat_map do |document|
           id = document['id'] || document['_id'] || document[:id] || document[:_id]
           [
             { index: { '_index' => index_name, '_type' => type, '_id' => id } },

@@ -16,6 +16,10 @@ describe Stretchy::Filters::NotFilter do
     subject.new(*args).to_search[:not]
   end
 
+  it 'builds an And filter' do
+    expect(subject.new(terms_filter, range_filter).filter).to be_a(Stretchy::Filters::AndFilter)
+  end
+
   it 'accepts a filter param' do
     result = get_result(terms_filter)
     expect(result).to eq(terms_filter.to_search)
@@ -27,7 +31,7 @@ describe Stretchy::Filters::NotFilter do
     expect(result[:and].last).to eq(range_filter.to_search)
   end
 
-  xit 'accepts filter arguments' do
+  it 'accepts filter arguments' do
     result = get_result(terms_filter, range_filter)
     expect(result[:and].first).to eq(terms_filter.to_search)
     expect(result[:and].last).to eq(range_filter.to_search)
