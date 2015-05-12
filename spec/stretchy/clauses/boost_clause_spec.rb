@@ -2,6 +2,7 @@ require 'spec_helper'
 
 describe Stretchy::Clauses::BoostClause do
   let(:base) { Stretchy::Clauses::Base.new }
+  subject    { described_class.new(base) }
 
   describe 'initialize with' do
     specify 'base' do
@@ -16,7 +17,6 @@ describe Stretchy::Clauses::BoostClause do
   end
 
   describe 'can add option' do
-    subject { described_class.new(base) }
 
     specify 'random' do
       expect(subject.random(27).boost_builder.functions).to include(Stretchy::Boosts::RandomBoost)
@@ -90,7 +90,26 @@ describe Stretchy::Clauses::BoostClause do
         expect(fn.origin).to eq(27)
         expect(fn.scale).to eq(2)
       end
+    end
+  end
 
+  describe 'does not chain from' do
+
+    def check_instance(instance)
+      expect(instance).to be_a(Stretchy::Clauses::WhereClause)
+      expect(instance.where_builder.terms[:my_field]).to include(3)
+    end
+
+    specify 'near' do
+      instance = subject.near(field: :published, origin: Time.now, scale: '3d').where(my_field: 3)
+      expect(instance.boost_builder.functions).to include(Stretchy::Boosts::FieldDecayBoost)
+      check_instance(instance)
+    end
+
+    specify 'random' do
+      instance = subject.random(100).where(my_field: 3)
+      expect(instance.boost_builder.functions).to include(Stretchy::Boosts::RandomBoost)
+      check_instance(instance)
     end
   end
 end
