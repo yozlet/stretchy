@@ -10,14 +10,22 @@ module Stretchy
         self
       end
 
+      def where(*args)
+        WhereClause.new(self, *args)
+      end
+
+      def match(*args)
+        MatchClause.new(self, *args)
+      end
+
       def range(*args)
         where_function(:range, *args)
-        self
+        Base.new(self)
       end
 
       def geo(*args)
         where_function(:geo, *args)
-        self
+        Base.new(self)
       end
 
       private

@@ -52,4 +52,26 @@ describe Stretchy::Clauses::Base do
     expect(described_class.new.to_search).to eq(match_all: {})
   end
 
+  it 'is not inverse by default' do
+    expect(subject.inverse?).to eq(false)
+  end
+
+  it 'produces request json via to_search' do
+    expect(subject.to_search).to be_a(Hash)
+  end
+
+  it 'returns a results object' do
+    expect(subject.query_results).to be_a(Stretchy::Results::Base)
+    expect(subject.request).to be_a(Hash)
+    expect(subject.response).to be_a(Hash)
+    expect(subject.results.all?{|r| r.is_a?(Hash)}).to eq(true)
+    expect(subject.ids.all?{|id| id.is_a?(Numeric)}).to eq(true)
+    expect(subject.took).to be_a(Numeric)
+    expect(subject.shards).to be_a(Hash)
+    expect(subject.total).to be_a(Numeric)
+    expect(subject.max_score).to be_a(Numeric)
+
+
+  end
+
 end

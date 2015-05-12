@@ -5,27 +5,19 @@ module Stretchy
     class TermsFilter < Base
 
       contract field: {type: :field, required: true},
-              values: {type: Array,  required: true}
+               terms: {type: [Numeric, Time, String, Symbol], array: true,  required: true}
 
-      def initialize(field_or_opts = {}, terms = [])
-        if field_or_opts.is_a?(Hash)
-          @terms = field_or_opts
-        else
-          @terms = { field_or_opts => Array(terms) }
-        end
-        validate_terms!
-      end
-
-      def validate_terms!
-        exc = Stretchy::Errors::ContractError.new("Terms cannot be blank")
-        raise exc if @terms.none? || @terms.any? do |field, terms|
-          terms.none?
-        end
+      def initialize(field, terms)
+        @field = field
+        @terms = Array(terms)
+        validate!
       end
 
       def to_search
         {
-          terms: @terms
+          terms: {
+            @field => @terms
+          }
         }
       end
     end

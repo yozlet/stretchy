@@ -60,6 +60,23 @@ describe Stretchy::Boosts::FieldDecayBoost do
       result = get_result(params.merge(decay: 0.5))
       expect(result[:gauss][params[:field]][:decay]).to eq(0.5)
     end
+
+    context 'geo_point param' do
+      let(:point) { Stretchy::Types::GeoPoint.new(lat: 27.7, lon: 38.3) }
+      let(:params) do
+        {
+          field: :coords,
+          origin: point,
+          scale: '27km'
+        }
+      end
+
+      specify 'lat and lon' do
+        result = get_result(params)
+        expect(result[:gauss][params[:field]][:origin][:lat]).to eq(point.lat)
+        expect(result[:gauss][params[:field]][:origin][:lon]).to eq(point.lon)
+      end
+    end
   end
 
 end

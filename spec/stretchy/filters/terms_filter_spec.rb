@@ -22,12 +22,6 @@ describe Stretchy::Filters::TermsFilter do
     expect(result[field].first).to eq(values.first)
   end
 
-  it 'takes a hash as param' do
-    result = get_result(field_one: ['one', 'two'], field_two: ['three', 'four'])
-    expect(result[:field_one]).to eq(['one', 'two'])
-    expect(result[:field_two]).to eq(['three', 'four'])
-  end
-
   it 'raises error for invalid types' do
     expect{subject.new(field: '', values: 'wat')}.to raise_error
   end

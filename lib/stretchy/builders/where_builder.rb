@@ -167,7 +167,9 @@ module Stretchy
         near_fields = Hash(options[:near_fields])
         exists      = Array(options[:exists])
         
-        filters << Stretchy::Filters::TermsFilter.new(terms) if terms.any?
+        terms.each do |field, values|
+          filters << Stretchy::Filters::TermsFilter.new(field, values)
+        end
         
         filters += exists.map do |field|
           Stretchy::Filters::ExistsFilter.new(field)

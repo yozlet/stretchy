@@ -4,6 +4,8 @@ module Stretchy
   module Clauses
     class BoostMatchClause < BoostClause
 
+      delegate [:range, :geo] => :where
+
       def initialize(base, opts_or_string = {}, options = {})
         super(base)
         if opts_or_string.is_a?(Hash)
@@ -17,6 +19,14 @@ module Stretchy
 
       def not(opts_or_string = {}, options = {})
         self.class.new(self, opts_or_string, options.merge(inverse: !inverse?))
+      end
+
+      def where(*args)
+        WhereClause.new(self, *args)
+      end
+
+      def match(*args)
+        MatchClause.new(self, *args)
       end
 
       private

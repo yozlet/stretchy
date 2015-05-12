@@ -16,10 +16,12 @@ module Stretchy
       def match(options = {})
         BoostMatchClause.new(self, options)
       end
+      alias :fulltext :match
 
       def where(options = {})
         BoostWhereClause.new(self, options)
       end
+      alias :filter :where
 
       def near(options = {})
         if options[:lat] || options[:latitude]  ||
