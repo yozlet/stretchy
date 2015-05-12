@@ -30,13 +30,13 @@ module Stretchy
           options[:origin] = Stretchy::Types::GeoPoint.new(options)
         end
         @boost_builder.functions << Stretchy::Boosts::FieldDecayBoost.new(options)
-        self
+        Base.new(self)
       end
       alias :geo :near
 
       def random(*args)
         @boost_builder.functions << Stretchy::Boosts::RandomBoost.new(*args)
-        self
+        Base.new(self)
       end
 
       def all(num)
@@ -60,8 +60,7 @@ module Stretchy
       end
 
       def not(options = {})
-        inst = self.class.new(self, options.merge(inverse: !inverse?))
-        inst
+        self.class.new(self, options.merge(inverse: !inverse?))
       end
 
     end
