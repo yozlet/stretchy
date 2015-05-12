@@ -96,22 +96,22 @@ describe Stretchy do
       query = filtered_query[:query][:bool][:must]
       expect(query).to include(match: { '_all' => { query: 'all_match', operator: 'and' }})
       expect(query).to include(match: { match_field: { query: 'match_field_string', operator: 'and' }})
-      expect(query).to include(match: { must_string_field: { query: 'must_string', operator: 'and' }})
+      expect(query).to include(match: { must_string_field: { query: 'must_string', operator: 'or' }})
       expect(query).to include(match: { 
         must_terms: { 
           query: 'must_symbol_in_array must_string_in_array_terms', 
-          operator: 'and' 
+          operator: 'or' 
         }
       })
 
       not_query = result[:function_score][:query][:filtered][:query][:bool][:must_not]
       expect(not_query).to include(match: {'_all' => { query: 'all_not_match', operator: 'and'}})
       expect(not_query).to include(match: {not_match_field: { query: 'not_match_field_string', operator: 'and'}})
-      expect(not_query).to include(match: {must_not_string_field: { query: 'must_not_string', operator: 'and'}})
+      expect(not_query).to include(match: {must_not_string_field: { query: 'must_not_string', operator: 'or'}})
       expect(not_query).to include(match: {
         must_not_terms: { 
           query: 'must_not_string_in_array must_not_symbol_in_array', 
-          operator: 'and'
+          operator: 'or'
         }
       })
 
@@ -193,7 +193,7 @@ describe Stretchy do
                       match: {
                         boost_string_field: {
                           query: 'boost_string',
-                          operator: 'and'
+                          operator: 'or'
                         }
                       }
                     },
@@ -201,7 +201,7 @@ describe Stretchy do
                       match: {
                         boost_terms: {
                           query: 'boost_string_term boost_symbol_term',
-                          operator: 'and'
+                          operator: 'or'
                         }
                       }
                     }

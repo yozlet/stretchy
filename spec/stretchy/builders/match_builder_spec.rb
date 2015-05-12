@@ -39,17 +39,37 @@ describe Stretchy::Builders::MatchBuilder do
       expect(should_not[:match][:fieldname]).to eq(query: 'one', operator: 'and')
     end
 
-    it 'works with all options' do
-      subject.matches[:matchfield]                = ['match', 'this']
-      subject.antimatches[:anti_field]            = ['do not match this']
-      subject.shouldmatches[:should_field]        = ['should match']
-      subject.shouldnotmatches[:should_not_field] = ['should', 'not', :match]
+    context 'with all options' do
 
-      expect(result[:must].first[:match][:matchfield]).to eq(query: 'match this', operator: 'and')
-      expect(result[:must_not].first[:match][:anti_field]).to eq(query: 'do not match this', operator: 'and')
-      shoulds = result[:should].first[:bool]
-      expect(shoulds[:must].first[:match][:should_field]).to eq(query: 'should match', operator: 'and')
-      expect(shoulds[:must_not].first[:match][:should_not_field]).to eq(query: 'should not match', operator: 'and')
+      before do
+        subject.matches[:matchfield]                = ['match', 'this']
+        subject.antimatches[:anti_field]            = ['do not match this']
+        subject.shouldmatches[:should_field]        = ['should match']
+        subject.shouldnotmatches[:should_not_field] = ['should', 'not', :match]
+      end
+
+      it 'produces expected json' do
+        expect(result[:must].first[:match][:matchfield]).to eq(query: 'match this', operator: 'and')
+        expect(result[:must_not].first[:match][:anti_field]).to eq(query: 'do not match this', operator: 'and')
+        shoulds = result[:should].first[:bool]
+        expect(shoulds[:must].first[:match][:should_field]).to eq(query: 'should match', operator: 'and')
+        expect(shoulds[:must_not].first[:match][:should_not_field]).to eq(query: 'should not match', operator: 'and')
+      end
+
+      it 'uses matchops to determine operator' do
+        subject.matchops[:matchfield] = 'or'
+        subject.antimatchops[:anti_field] = 'or'
+        subject.shouldmatchops[:should_field] = 'or'
+        subject.shouldnotmatchops[:should_not_field] = 'or'
+
+        expect(result[:must].first[:match][:matchfield]).to eq(query: 'match this', operator: 'or')
+        expect(result[:must_not].first[:match][:anti_field]).to eq(query: 'do not match this', operator: 'or')
+        
+        shoulds = result[:should].first[:bool]
+        expect(shoulds[:must].first[:match][:should_field]).to eq(query: 'should match', operator: 'or')
+        expect(shoulds[:must_not].first[:match][:should_not_field]).to eq(query: 'should not match', operator: 'or')
+      end
+
     end
   end
 end

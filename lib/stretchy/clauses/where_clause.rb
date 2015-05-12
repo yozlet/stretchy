@@ -112,6 +112,7 @@ module Stretchy
             get_storage(:exists, true) << field
           when String, Symbol
             get_storage(:matches)[field] += Array(param)
+            get_storage(:matchops)[field] = 'or'
           when Range
             get_storage(:ranges)[field] = Stretchy::Types::Range.new(param)
           else

@@ -27,10 +27,12 @@ module Stretchy
       end
 
       def to_search
-        json = {
-          origin: @origin,
-          scale: @scale,
-        }
+        json = {scale: @scale}
+        if @origin.is_a?(Stretchy::Types::Base)
+          json[:origin] = @origin.to_search
+        else
+          json[:origin] = @origin
+        end
         json[:offset] = @offset  if @offset
         json[:decay]  = @decay   if @decay
 

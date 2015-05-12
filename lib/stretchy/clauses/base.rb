@@ -10,7 +10,8 @@ module Stretchy
       attr_accessor :match_builder, :where_builder, :boost_builder, 
                     :aggregate_builder, :inverse, :type, :index_name
 
-      delegate [:request, :response, :results, :ids, :hits, :took, :shards, :total, :max_score] => :query_results
+      delegate [:request, :response, :results, :ids, :hits, 
+                :took, :shards, :total, :max_score] => :query_results
       delegate [:range, :geo] => :where
 
       def initialize(base_or_opts = nil, options = {})
@@ -60,10 +61,12 @@ module Stretchy
       def match(options = {})
         MatchClause.new(self, options)
       end
+      alias :fulltext :match
 
       def where(options = {})
         WhereClause.new(self, options)
       end
+      alias :filter :where
 
       def boost(options = {})
         BoostClause.new(self, options)

@@ -45,4 +45,32 @@ describe Stretchy::Clauses::BoostWhereClause do
       expect(subject.not.inverse?).to eq(true)
     end
   end
+
+  describe 'cannot chain' do
+    subject { described_class.new(base) }
+
+    specify 'where' do
+      instance = subject.where(filter_field: 27)
+      expect(instance).to be_a(Stretchy::Clauses::WhereClause)
+      expect(instance.where_builder.terms[:filter_field]).to include(27)
+    end
+
+    specify 'match' do
+      instance = subject.match('string')
+      expect(instance).to be_a(Stretchy::Clauses::MatchClause)
+      expect(instance.match_builder.matches['_all']).to include('string')
+    end
+
+    specify 'range' do
+      instance = subject.range(:range_field, min: 88).range(:filter_range, max: 33)
+      expect(instance).to be_a(Stretchy::Clauses::WhereClause)
+      expect(instance.where_builder.ranges[:filter_range]).to be_a(Stretchy::Types::Range)
+    end
+
+    specify 'geo' do
+      instance = subject.geo(:geo_field, distance: '27km', lat: 88.3, lng: 22.1).geo(:filter_geo, distance: '35mi', lat: 22.9, lng: 82.1)
+      expect(instance).to be_a(Stretchy::Clauses::WhereClause)
+      expect(instance.where_builder.geos[:filter_geo]).to include(distance: '35mi')
+    end
+  end
 end

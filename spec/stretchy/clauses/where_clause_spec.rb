@@ -18,12 +18,17 @@ describe Stretchy::Clauses::WhereClause do
         symbol_field: :my_symbol
       )
       expect(instance.match_builder.matches[:field_one]).to include('one')
+      expect(instance.match_builder.matchops[:field_one]).to eq('or')
       expect(instance.match_builder.matches[:symbol_field]).to include(:my_symbol)
+      expect(instance.match_builder.matchops[:symbol_field]).to eq('or')
+      
       expect(instance.where_builder.terms[:number_field]).to include(86)
       expect(instance.where_builder.antiexists).to include(:nil_field)
+      
       expect(instance.where_builder.ranges[:range_field]).to be_a(Stretchy::Types::Range)
       expect(instance.where_builder.ranges[:range_field].min).to eq(27)
       expect(instance.where_builder.ranges[:range_field].max).to eq(34)
+      
       [:shouldterms, :shouldnotterms, :shouldranges, 
        :shouldnotranges, :shouldgeos, :shouldnotgeos,
        :shouldexists, :shouldnotexists].each do |field|
