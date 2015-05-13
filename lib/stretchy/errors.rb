@@ -1,0 +1,1 @@
+require 'stretchy/errors/contract_error.rb'
