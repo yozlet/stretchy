@@ -4,12 +4,18 @@ require 'forwardable'
 require 'excon'
 require 'elasticsearch'
 
-require 'stretchy/utils/configuration'
-require 'stretchy/utils/client_actions'
+require 'stretchy/utils'
+require 'stretchy/errors'
+require 'stretchy/types'
+require 'stretchy/queries'
+require 'stretchy/filters'
+require 'stretchy/queries'
+require 'stretchy/boosts'
+require 'stretchy/builders'
+require 'stretchy/results'
+require 'stretchy/clauses'
 
 module Stretchy
   extend Stretchy::Utils::Configuration
   extend Stretchy::Utils::ClientActions
 end
-
-Gem.find_files('stretchy/**/*.rb').reject{|f| f =~ /spec/ }.each {|f| require f }
