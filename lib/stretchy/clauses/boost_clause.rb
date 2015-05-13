@@ -118,6 +118,8 @@ module Stretchy
       #   )
       # 
       # @return [Base] Query with field decay filter added
+      # 
+      # @see http://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-function-score-query.html Elastic Docs - Function Score Query
       def near(options = {})
         if options[:lat] || options[:latitude]  ||
            options[:lng] || options[:longitude] || options[:lon]
@@ -137,6 +139,8 @@ module Stretchy
       # @param weight [Numeric] The weight for this random value
       # 
       # @return [Base] Query with random boost applied
+      # 
+      # @see http://www.elastic.co/guide/en/elasticsearch/guide/master/random-scoring.html Elastic Docs - Random Scoring
       def random(*args)
         @boost_builder.functions << Stretchy::Boosts::RandomBoost.new(*args)
         Base.new(self)

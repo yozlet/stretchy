@@ -66,6 +66,10 @@ module Stretchy
       # 
       # @see {WhereClause#range}
       # 
+      # @see {Filters::RangeFilter}
+      # 
+      # @see http://www.elastic.co/guide/en/elasticsearch/guide/master/_ranges.html Elastic Guides - Ranges
+      # 
       # @return [Base] Query in base context with range boost applied
       def range(*args)
         where_function(:range, *args)
@@ -81,6 +85,10 @@ module Stretchy
       # boost the document.
       # 
       # @see {WhereFunction#geo}
+      # 
+      # @see {Filters::GeoFilter}
+      # 
+      # @see http://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-geo-distance-filter.html Elastic Docs - Geo Distance Filter
       # 
       # @return [Base] Query in base context with geo filter boost applied
       def geo(*args)

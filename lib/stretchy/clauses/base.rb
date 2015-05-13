@@ -32,8 +32,8 @@ module Stretchy
       # to query on your index.
       # 
       # @overload initialize(base_or_opts, options)
-      #   @param [Base] another clause to copy attributes from
-      #   @param [Hash] options to set on the new state
+      #   @param base [Base] another clause to copy attributes from
+      #   @param options [Hash] options to set on the new state
       # 
       # @overload initialize(base_or_opts)
       #   @option base_or_opts [String] :index        The Elastic index to query
@@ -69,6 +69,8 @@ module Stretchy
       # Sets how many results to return, similar to
       # ActiveRecord's limit method.
       # 
+      # @see http://www.elastic.co/guide/en/elasticsearch/reference/current/search-request-body.html Elastic Docs - Request Body Search
+      # 
       # @param num [Integer] How many results to return
       # 
       # @return [self]
@@ -90,6 +92,8 @@ module Stretchy
       # Corresponds to Elastic's "from" parameter
       # 
       # @param num [Integer] Offset for query
+      # 
+      # @see http://www.elastic.co/guide/en/elasticsearch/reference/current/search-request-body.html Elastic Docs - Request Body Search
       # 
       # @return [self]
       def offset(num)
@@ -113,7 +117,10 @@ module Stretchy
       #   the MatchClause
       # 
       # @return [MatchClause] query state with fulltext matches
+      # 
       # @see MatchClause#initialize
+      # 
+      # @see http://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-match-query.html Elastic Docs - Match Query
       def match(options = {})
         MatchClause.new(self, options)
       end
@@ -127,6 +134,7 @@ module Stretchy
       #   the {WhereClause}
       # 
       # @return [WhereClause] query state with filters
+      # 
       # @see  WhereClause#initialize
       def where(options = {})
         WhereClause.new(self, options)
@@ -141,7 +149,9 @@ module Stretchy
       # 
       # @param options = {} [type] [description]
       # 
-      # @return [type] [description]
+      # @return [BoostClause] query in boost context
+      # 
+      # @see http://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-function-score-query.html Elastic Docs - Function Score Query
       def boost(options = {})
         BoostClause.new(self, options)
       end
@@ -183,6 +193,10 @@ module Stretchy
       #   @param [Hash] Options to generate filters.
       # 
       # @return [WhereClause] current query state with should clauses applied
+      # 
+      # @see http://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-bool-query.html Elastic Docs - Bool Query
+      # 
+      # @see http://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-bool-filter.html Elastic Docs - Bool Filter
       def should(opts_or_string = {}, opts = {})
         if opts_or_string.is_a?(Hash)
           WhereClause.new(self, opts_or_string.merge(should: true))

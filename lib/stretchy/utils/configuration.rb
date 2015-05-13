@@ -28,8 +28,12 @@ module Stretchy
         ]
       end
 
+      def connect(options = {})
+        @client = Elasticsearch::Client.new(client_options.merge(options))
+      end
+
       def client(options = {})
-        @client ||= Elasticsearch::Client.new(client_options.merge(options))
+        @client || connect(options)
       end
     end
   end

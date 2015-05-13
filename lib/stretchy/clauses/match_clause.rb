@@ -43,6 +43,8 @@ module Stretchy
       #     my_field: "match in my_field",
       #     other_field: "match in other_field"
       #   )
+      # 
+      # @see http://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-match-query.html Elastic Docs - Match Query
       def initialize(base, opts_or_str = {}, options = {})
         super(base)
         if opts_or_str.is_a?(Hash)
@@ -110,6 +112,8 @@ module Stretchy
       #     field_one: "one",
       #     field_two: "two"
       #   )
+      # 
+      # @see http://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-bool-query.html Elastic Docs - Bool Query
       def should(opts_or_str = {}, options = {})
         self.class.new(self, opts_or_str, options.merge(should: true))
       end

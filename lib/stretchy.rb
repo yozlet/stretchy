@@ -7,6 +7,8 @@ require 'elasticsearch'
 require 'stretchy/utils/configuration'
 require 'stretchy/utils/client_actions'
 
+# {include:file:README.md}
+
 module Stretchy
   extend Stretchy::Utils::Configuration
   extend Stretchy::Utils::ClientActions

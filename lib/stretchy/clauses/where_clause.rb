@@ -51,6 +51,13 @@ module Stretchy
       #     in_range: 27..33,
       #     included_in: [47, 23, 86]
       #   )
+      # 
+      # @see http://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-terms-filter.html Elastic Docs - Terms Filter
+      # 
+      # @see http://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-exists-filter.html Elastic Docs - Exists Filter
+      # 
+      # @see http://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-range-filter.html Elastic Docs - Range Filter
+      # 
       def initialize(base, options = {})
         super(base)
         @inverse = options.delete(:inverse)
