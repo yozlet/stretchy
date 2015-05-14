@@ -24,9 +24,11 @@ module Stretchy
       def search(options = {})
         params = {}
         params[:index]  = options[:index] || index_name
-        params[:type]   = options[:type]
         params[:fields] = Array(options[:fields]) if options[:fields]
-        params[:body]   = options[:body]
+        
+        [:type, :body, :from, :size, :explain].each do |field|
+          params[field] = options[field] if options[field]
+        end
 
         client.search(params)
       end

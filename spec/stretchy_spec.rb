@@ -13,6 +13,23 @@ describe Stretchy do
     expect(Stretchy.client.object_id).to eq(Stretchy.client.object_id)
   end
 
+  it 'passes from and size arguments correctly' do
+    expect(Stretchy.client).to receive(:search).with(
+      index: Stretchy.index_name, 
+      type: FIXTURE_TYPE, 
+      body: {:query=>{:match_all=>{}}},
+      size: 20,
+      from: 1
+    )
+
+    Stretchy.search(
+      type: FIXTURE_TYPE,
+      body: {query: Stretchy::Queries::MatchAllQuery.new.to_search},
+      from: 1,
+      size: 20
+    )
+  end
+
   context 'saves you a LOT of typing' do
     let(:found)      { fixture(:sakurai) }
     let(:max_time)   { Time.parse(found['first_game']) }
