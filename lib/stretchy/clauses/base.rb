@@ -51,6 +51,7 @@ module Stretchy
           @inverse            = options[:inverse] || base.inverse
           @limit              = base.get_limit
           @offset             = base.get_offset
+          @explain            = base.get_explain
         else
           options = Hash(base_or_opts).merge(options)
           @index_name         = options[:index] || Stretchy.index_name
@@ -107,6 +108,22 @@ module Stretchy
       # @return [Integer] Offset for query
       def get_offset
         @offset
+      end
+
+      # 
+      # Tells the search to explain the scoring
+      # mechanism for each document.
+      # 
+      # @see http://www.elastic.co/guide/en/elasticsearch/reference/current/search-request-explain.html Elastic Docs - Request Body Search (explain)
+      # 
+      # @return [self] Allows continuing the query chain
+      def explain
+        @explain = true
+        self
+      end
+
+      def get_explain
+        !!@explain
       end
 
       # 

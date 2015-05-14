@@ -39,9 +39,14 @@ Stretchy is still in early development, so it does not yet support the full feat
 Stretchy.configure do |c|
   c.index_name = 'my_index'                       # REQUIRED
   c.client     = $my_client                       # ignore below, use a custom client
-  c.logger     = Logger.new(STDOUT)               # passed to elasticsearch-api gem
   c.url        = 'https://user:pw@my.elastic.url' # default is ENV['ELASTICSEARCH_URL']
   c.adapter    = :patron                          # default is :excon
+
+  c.logger     = Logger.new(STDOUT)               # passed to elasticsearch-api gem
+                                                  # Stretchy will also log, with the params
+                                                  # specified below
+  c.log_level  = :debug                           # default is :silence
+  c.log_color  = :green                           # default is :blue 
 end
 ```
 
