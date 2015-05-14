@@ -18,6 +18,7 @@ describe Stretchy do
       index: Stretchy.index_name, 
       type: FIXTURE_TYPE, 
       body: {:query=>{:match_all=>{}}},
+      explain: true,
       size: 20,
       from: 1
     )
@@ -25,6 +26,7 @@ describe Stretchy do
     Stretchy.search(
       type: FIXTURE_TYPE,
       body: {query: Stretchy::Queries::MatchAllQuery.new.to_search},
+      explain: true,
       from: 1,
       size: 20
     )

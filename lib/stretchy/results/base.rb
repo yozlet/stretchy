@@ -26,7 +26,14 @@ module Stretchy
       end
 
       def response
-        @response ||= Stretchy.search(type: type, body: request, from: offset, size: limit)
+        params = {
+          type: type, 
+          body: request,
+          from: offset,
+          size: limit
+        }
+        params[:explain] = true if clause.get_explain
+        @response ||= Stretchy.search(params)
       end
 
       def ids
@@ -40,6 +47,18 @@ module Stretchy
         end
       end
       alias :results :hits
+
+      def scores
+        @scores ||= Hash[response['hits']['hits'].map do |hit|
+          [hit['_id'], hit['_score']]
+        end]
+      end
+
+      def explanations
+        @scores ||= Hash[response['hits']['hits'].map do |hit|
+          [hit['_id'], hit['_explanation']]
+        end]
+      end
 
       def took
         @took ||= response['took']

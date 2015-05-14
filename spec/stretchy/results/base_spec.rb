@@ -3,6 +3,7 @@ require 'spec_helper'
 describe Stretchy::Results::Base do
 
   let(:request) { Stretchy.query(type: FIXTURE_TYPE).match(location: "Japan") }
+  let(:found)   { fixture(:sakurai) }
 
   subject { described_class.new(request) }
 
@@ -32,6 +33,22 @@ describe Stretchy::Results::Base do
     expect(subject.hits.count).to be > 1
     ['_index', '_type', '_id', '_score'].each do |field|
       expect(subject.hits.first[field]).to_not be_nil
+    end
+  end
+
+  it 'returns scores' do
+    expect(subject.scores).to be_a(Hash)
+    expect(subject.scores.count).to be > 1
+    expect(subject.scores[found['id'].to_s]).to be_a(Numeric)
+  end
+
+  context 'with explanation' do
+    let(:request) { Stretchy.query(type: FIXTURE_TYPE).match(location: "Japan").explain }
+
+    it 'returns explanations' do
+      expect(subject.explanations).to be_a(Hash)
+      expect(subject.explanations.count).to be > 1
+      expect(subject.explanations[found['id'].to_s]).to be_a(Hash)
     end
   end
 
