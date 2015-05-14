@@ -33,10 +33,22 @@ Or install it yourself as:
 
 Stretchy is still in early development, so it does not yet support the full feature set of the [Elasticsearch API](http://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl.html). It does support fairly basic queries in an ActiveRecord-ish style.
 
+### Configuration
+
+```ruby
+Stretchy.configure do |c|
+  c.index_name = 'my_index'                       # REQUIRED
+  c.client     = $my_client                       # ignore below, use a custom client
+  c.logger     = Logger.new(STDOUT)               # passed to elasticsearch-api gem
+  c.url        = 'https://user:pw@my.elastic.url' # default is ENV['ELASTICSEARCH_URL']
+  c.adapter    = :patron                          # default is :excon
+end
+```
+
 ### Base
 
 ```ruby
-query = Stretchy::Query.new(index: 'app_production', type: 'model_name')
+query = Stretchy.query(type: 'model_name')
 ```
 
 From here, you can chain the following query methods:
@@ -44,57 +56,43 @@ From here, you can chain the following query methods:
 ### Match
 
 ```ruby
-query = query.match('welcome to my web site')
-query = query.match('welcome to my web site', field: 'title', operator: 'or')
+query = query.match('welcome to my web site').match(title: 'welcome to my web site')
 ```
 
-Performs a full-text search for the given string. `field` and `operator` are optional, and default to `_all` and `and` respectively.
-
-#### Variants
-
-* `not_match` - filters for documents not matching a full-text search
+Performs a full-text search for the given string. If given a hash, it will use a match query on the specified fields, otherwise it will default to `'_all'`.
 
 
 ### Where
 
 ```ruby
 query = query.where(
-  name: 'Exact Name',
+  name: 'alice',
   email: [
-    'exact@email.com',
-    'another.user.with.same.name@email.com'
-  ]
+    'alice@company.com',
+    'beatrice.christine@other_company.com'
+  ],
+  commit_count: 27..33,
+  is_robot: nil
 )
 ```
 
-Allows passing a hash of matchable options in `field: [values]` format. If any one of the values matches, that field will be considered matched. All fields must match for a document to be returned. See the [Terms filter](http://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-terms-filter.html) for more details.
-
-If you pass `field: nil`, Stretchy will construct the relevant `not { exists: field }` filter and apply it as expected.
+Allows passing a hash of matchable options similar to ActiveRecord's `where` method. To be returned, the document must match each of the parameters. If you pass an array of parameters for a field, the document must match at least one of those parameters.
 
 #### Gotcha
 
-Matches _must_ be exact; the values you pass in here are not analyzed by Elasticsearch, while the values stored in the index are (unless you turned analysis off for that field).
-
-#### Variants
-
-* `not_where` - filters for documents *not* matching the criteria
-* `boost_where` - boosts the relevance score for matching documents
-* `boost_not_where` - boosts the relevance score for documents not matching the criteria
+If you pass a string or symbol for a field, it will be converted to a [Match Query](http://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-match-query.html) for the specified field. Since Elastic analyzes terms by default, string or symbol terms will be looked for by an analyzed query.
 
 ### Range
 
 ```ruby
-query = query.range(field: 'rating', min: 3, max: 5)
+query = query.range(:rating, min: 3, max: 5)
+             .range(:released, min: Time.now - 60*60*24*100)
+             .range(:quantity, max: 100, exclusive: true)
 ```
 
-Only documents with the specified field, and within the specified range (inclusive) match. You can also pass in dates and times as ranges. Currently, you must pass both a min and a max value.
+Only documents with the specified field, and within the specified range match. You can also pass in dates and times as ranges. While you could pass a normal ruby `Range` object to `.where`, this allows you to specify only a minimum or only a maximum. Range filters are inclusive by default, but you can also pass `:exclusive`, `:exclusive_min`, or `:exclusive_max`.
 
-#### Variants
-
-* `not_range` - filters for only documents where the field is *outside* the given range
-* `boost_range` - boosts the relevance score for matching documents
-
-### Geo
+### Geo Distance
 
 ```ruby
 query = query.geo(field: 'coords', distance: '20mi', lat: 35.0117, lng: 135.7683)
@@ -106,10 +104,55 @@ Filters for documents where the specified `geo_point` field is within the given 
 
 The field must be mapped as a `geo_point` field. See [Elasticsearch types](http://www.elastic.co/guide/en/elasticsearch/reference/current/mapping-geo-point-type.html) for more info.
 
-#### Variants
+### Not
 
-* `not_geo` - filters for documents outside the specified range
-* `boost_geo` - boosts the relevance score for documents based on how far from the given point they are
+```ruby
+query = query.where.not(rating: 0)
+             .match.not('angry')
+             .where.not.geo(field: 'coords', distance: '20mi', lat: 35.0117, lng: 135.7683)
+```
+
+Called after `where` or `match` will let you apply inverted filters. Any documents that match those filters will be excluded.
+
+### Should
+
+```ruby
+query = query.should(name: 'Sarah', awesomeness: 1000).should.not(awesomeness: 0)
+```
+
+Should filters work similarly to `.where`. Documents that do not match are still returned, but they have a lower relevancy score and will appear after documents that do match in the results. See Elastic's documentation for [BoolQuery](http://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-bool-query.html) and [BoolFilter](http://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-bool-filter.html) for more info.
+
+### Boost
+
+```ruby
+query = query.boost.where(category: 3, weight: 100)
+             .boost.range(:awesomeness, min: 10, weight: 10)
+             .boost.match.not('sucks')
+```
+
+Boosts use a [Function Score Query](http://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-function-score-query.html) with filters to allow you to affect the score for the document. Each condition will be applied as a filter with an optional weight.
+
+
+### Near
+
+```ruby
+query = query.boost.near(field: :published_at, origin: Time.now, scale: '5d')
+             .boost.near(field: :coords, lat: 35.0117, lng: 135.7683, scale: '10mi', decay: 0.33, weight: 1000)
+```
+
+Boosts a document by how close a given field is to a given `:origin` . Accepts dates, times, numbers, and geographical points. Unlike `.where.range` or `.boost.geo`, `.boost.near` is not a binary operation. All documents get a score for that field, which decays the further it is away from the origin point. 
+
+The `:scale` param determines how quickly the value falls off. In the example above, if a document's `:coords` field is 10 miles away from the starting point, its score is about 1/3 that of a document at the origin point.
+
+See the [Function Score Query](http://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-function-score-query.html) section on Decay Functions for more info.
+
+### Random
+
+```ruby
+query = query.boost.random(user.id, 50)
+```
+
+Gives each document a randomized boost with a given seed and optional weight. This allows you to show slightly different result sets to different users, but show the same result set to that user every time.
 
 ### Limit and Offset
 
@@ -117,23 +160,7 @@ The field must be mapped as a `geo_point` field. See [Elasticsearch types](http:
 query = query.limit(20).offset(1000)
 ```
 
-Works the same way as ActiveRecord's limit and offset methods.
-
-### Boost Random
-
-```ruby
-query = query.boost_random(user.id, 1.4)
-```
-
-Provides a random-but-deterministic boost to relevance scores. The first parameter is required, and represents the random seed. The second parameter is optional, and represents the weight for the random factor. See [Random Scoring](http://www.elastic.co/guide/en/elasticsearch/guide/master/random-scoring.html) for more details.
-
-### Explain
-
-```ruby
-query = query.explain.results
-```
-
-Provides Elasticsearch explanation results in `query.response` . See [the explain documentation](http://www.elastic.co/guide/en/elasticsearch/reference/1.x/search-explain.html) for more info.
+Works the same way as ActiveRecord's limit and offset methods - analogous to Elasticsearch's `from` and `size` parameters.
 
 ### Response
 
@@ -149,7 +176,7 @@ Executes the query, returns the raw JSON response from Elasticsearch and caches 
 query.results
 ```
 
-Executes the query and provides the parsed json for each hit returned by Elasticsearch. 
+Executes the query and provides the parsed json for each hit returned by Elasticsearch, along with `_index`, `_type`, `_id`, and `_score` fields.
 
 ### Ids
 
@@ -157,9 +184,7 @@ Executes the query and provides the parsed json for each hit returned by Elastic
 query.ids
 ```
 
-Provides only the ids for each hit. If your document ids are numeric (as is the case for most ActiveRecord-integrated documents), they will be converted to integers.
-
-This is somewhat intelligent - if you have already called `results` the ids will be fetched from there, otherwise it will run the search and skip the data-fetch phase in Elasticsearch.
+Provides only the ids for each hit. If your document ids are numeric (as is the case for many ActiveRecord integrations), they will be converted to integers.
 
 ### Total
 

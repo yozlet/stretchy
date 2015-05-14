@@ -15,6 +15,8 @@ require 'stretchy/builders'
 require 'stretchy/results'
 require 'stretchy/clauses'
 
+# {include:file:README.md}
+
 module Stretchy
   extend Stretchy::Utils::Configuration
   extend Stretchy::Utils::ClientActions
