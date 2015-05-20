@@ -23,7 +23,7 @@ module Stretchy
                     :aggregate_builder, :inverse, :type, :index_name
 
       delegate [:request, :response, :results, :ids, :hits, 
-                :took, :shards, :total, :max_score] => :query_results
+                :took, :shards, :total, :max_score, :total_pages] => :query_results
       delegate [:range, :geo] => :where
 
       #
@@ -59,7 +59,7 @@ module Stretchy
           @match_builder      = Stretchy::Builders::MatchBuilder.new
           @where_builder      = Stretchy::Builders::WhereBuilder.new
           @boost_builder      = Stretchy::Builders::BoostBuilder.new
-          @aggregate_builder  = nil
+          @aggregate_builder  = {}
           @inverse            = options[:inverse]
           @limit              = DEFAULT_LIMIT
           @offset             = DEFAULT_OFFSET
@@ -87,6 +87,7 @@ module Stretchy
       def get_limit
         @limit
       end
+      alias :limit_value :get_limit
 
       # 
       # Sets the offset to start returning results at.
@@ -101,6 +102,7 @@ module Stretchy
         @offset = num
         self
       end
+      alias :per_page :offset
 
       # 
       # Accessor for `@offset`
@@ -109,6 +111,27 @@ module Stretchy
       def get_offset
         @offset
       end
+
+      # 
+      # Allows pagination via Kaminari-like accessor
+      # @param num [Integer] Page number. Natural numbers only, **this is not zero-indexed**
+      # @option per_page [Integer] :per_page (DEFAULT_LIMIT) Number of results per page
+      # 
+      # @return [self] Allows continuing the query chain
+      def page(num, options = {})
+        @limit  = options[:limit] || options[:per_page] || @limit
+        @offset = [(num - 1), 0].max.ceil * @limit
+        self
+      end
+
+      # 
+      # Accessor for current page
+      # 
+      # @return [Integer] (offset / limit).ceil
+      def get_page
+        (@offset.to_f / @limit).ceil + 1
+      end
+      alias :current_page :get_page
 
       # 
       # Tells the search to explain the scoring
@@ -221,6 +244,23 @@ module Stretchy
           MatchClause.new(self, opts_or_string, opts.merge(should: true))
         end
       end
+
+      # 
+      # Allows adding raw aggregation JSON to your
+      # query
+      # @param opts = {} [Hash] JSON to aggregate on
+      # 
+      # @return [self] Allows continuing the query chain
+      def aggregations(opts = {})
+        @aggregate_builder = @aggregate_builder.merge(opts)
+        self
+      end
+      alias :aggs :aggregations
+
+      def get_aggregations
+        @aggregate_builder
+      end
+      alias :get_aggs :get_aggregations
 
       # 
       # Accessor for `@inverse`

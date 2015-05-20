@@ -42,10 +42,41 @@ describe Stretchy::Clauses::Base do
 
   it 'sets limit' do
     expect(subject.limit(13).get_limit).to eq(13)
+    expect(subject.limit(13).limit_value).to eq(13)
   end
 
   it 'sets offset' do
     expect(subject.offset(29).get_offset).to eq(29)
+  end
+
+  it 'sets page' do
+    expect(subject.page(2).get_offset).to eq(30)
+    expect(subject.page(3, per_page: 5).get_offset).to eq(10)
+    expect(subject.page(3, per_page: 5).get_limit).to eq(5)
+  end
+
+  it 'gets current page' do
+    query = subject.limit(13)
+    expect(query.offset(0).get_page).to eq(1)
+    expect(query.offset(13).get_page).to eq(2)
+    expect(query.offset(26).get_page).to eq(3)
+    expect(query.offset(28).get_page).to eq(4)
+
+    expect(query.offset(13).get_page).to eq(query.offset(13).current_page)
+  end
+
+  it 'allows setting aggregations' do
+    query = subject.aggregations(
+      all_products: {
+          global: {}, 
+          aggs: { 
+            avg_price: { avg: { field: :price } }
+          }
+      }
+    )
+    
+    expect(query.get_aggregations[:all_products][:global]).to be_a(Hash)
+    expect(query.get_aggregations[:all_products][:aggs][:avg_price][:avg][:field]).to eq(:price)
   end
 
   it 'defaults to match all query' do
@@ -70,8 +101,6 @@ describe Stretchy::Clauses::Base do
     expect(subject.shards).to be_a(Hash)
     expect(subject.total).to be_a(Numeric)
     expect(subject.max_score).to be_a(Numeric)
-
-
   end
 
 end
