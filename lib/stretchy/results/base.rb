@@ -6,7 +6,7 @@ module Stretchy
 
       attr_reader :clause, :index_name
 
-      delegate [:type] => :clause
+      delegate [:type, :current_page, :limit_value] => :clause
 
       def initialize(clause)
         @clause     = clause
@@ -16,13 +16,26 @@ module Stretchy
       def limit
         clause.get_limit
       end
+      alias :per_page :limit
+      alias :limit_value :limit
 
       def offset
         clause.get_offset
       end
 
+      def page
+        clause.get_page
+      end
+
+      def total_pages
+        [(total.to_f / limit).ceil, 1].max
+      end
+
       def request
-        @request ||= {query: clause.to_search}
+        return @request if @request
+        @request        = {query: clause.to_search}
+        @request[:aggs] = clause.get_aggregations if clause.get_aggregations.any?
+        @request
       end
 
       def response
@@ -32,7 +45,7 @@ module Stretchy
           from: offset,
           size: limit
         }
-        params[:explain] = true if clause.get_explain
+        params[:explain] = true                 if clause.get_explain
         @response ||= Stretchy.search(params)
       end
 
@@ -58,6 +71,10 @@ module Stretchy
         @scores ||= Hash[response['hits']['hits'].map do |hit|
           [hit['_id'], hit['_explanation']]
         end]
+      end
+
+      def aggregations
+        @aggregations ||= response['aggregations']
       end
 
       def took

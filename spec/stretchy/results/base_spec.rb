@@ -9,10 +9,31 @@ describe Stretchy::Results::Base do
 
   it 'accesses limit' do
     expect(subject.limit).to eq(request.get_limit)
+    expect(subject.limit_value).to eq(request.get_limit)
   end
 
   it 'accesses offset' do
     expect(subject.offset).to eq(request.get_offset)
+  end
+
+  it 'accesses current page' do
+    expect(subject.current_page).to eq(request.current_page)
+  end
+
+  context 'with variable results' do
+    before {  }
+  end
+
+  it 'computes total pages' do
+    expect(subject.total_pages).to eq(1)
+
+    allow(subject).to receive(:total).and_return(100)
+    allow(subject).to receive(:limit).and_return(20)
+    expect(subject.total_pages).to eq(5)
+
+    allow(subject).to receive(:total).and_return(67)
+    allow(subject).to receive(:limit).and_return(19)
+    expect(subject.total_pages).to eq(4)
   end
 
   it 'generates request body' do
@@ -66,6 +87,20 @@ describe Stretchy::Results::Base do
 
   it 'returns maximum query score' do
     expect(subject.max_score).to be > 0
+  end
+
+  it 'returns aggregations' do
+    query_with_aggs = request.aggregations(
+      game_devs: {
+        global: {}, 
+        aggs: { 
+          avg_salary: { avg: { field: :salary } }
+        }
+      }
+    )
+    aggs = described_class.new(query_with_aggs).aggregations
+    expect(aggs).to be_a(Hash)
+    expect(aggs['game_devs']['avg_salary']['value']).to be_a(Numeric)
   end
 
 end
