@@ -19,6 +19,10 @@ module Stretchy
       alias :per_page :limit
       alias :limit_value :limit
 
+      def fields
+        clause.get_fields
+      end
+
       def offset
         clause.get_offset
       end
@@ -45,7 +49,8 @@ module Stretchy
           from: offset,
           size: limit
         }
-        params[:explain] = true                 if clause.get_explain
+        params[:fields]  = fields   if fields
+        params[:explain] = true     if clause.get_explain
         @response ||= Stretchy.search(params)
       end
 
@@ -55,8 +60,16 @@ module Stretchy
 
       def hits
         @hits ||= response['hits']['hits'].map do |hit|
-          merge_fields = hit.reject{|field, _| field == '_source' }
-          hit['_source'].merge(merge_fields)
+          merge_fields = hit.reject{|field, _| ['_source', 'fields'].include?(field) }
+          
+          source_fields = {}
+          if hit['fields']
+            source_fields = Stretchy::Utils::DotHandler.convert_from_dotted_keys(hit['fields'])
+          elsif hit['_source']
+            source_fields = hit['_source']
+          end
+          
+          source_fields.merge(merge_fields)
         end
       end
       alias :results :hits

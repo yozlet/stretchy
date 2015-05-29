@@ -52,6 +52,7 @@ module Stretchy
           @limit              = base.get_limit
           @offset             = base.get_offset
           @explain            = base.get_explain
+          @fields             = base.get_fields
         else
           options = Hash(base_or_opts).merge(options)
           @index_name         = options[:index] || Stretchy.index_name
@@ -63,6 +64,7 @@ module Stretchy
           @inverse            = options[:inverse]
           @limit              = DEFAULT_LIMIT
           @offset             = DEFAULT_OFFSET
+          @fields             = nil
         end
       end
 
@@ -132,6 +134,34 @@ module Stretchy
         (@offset.to_f / @limit).ceil + 1
       end
       alias :current_page :get_page
+
+      # 
+      # Select fields for Elasticsearch to return
+      # 
+      # By default, Stretchy will return the entire _source 
+      # for each document. If you call `.fields` with no
+      # arguments or an empty array, Stretchy will pass
+      # an empty array and only the "_type" and "_id"
+      # fields will be returned.
+      # 
+      # @see  https://www.elastic.co/guide/en/elasticsearch/reference/current/search-request-fields.html Elastic Docs - Fields
+      # 
+      # @param new_fields [Array] Fields elasticsearch should return
+      # 
+      # @return [self] Allows continuing the query chain
+      def fields(*args)
+        @fields ||= []
+        @fields += args.flatten if args.any?
+        self
+      end
+
+      # 
+      # Accessor for fields Elasticsearch will return
+      # 
+      # @return [Array] List of fields in the current query
+      def get_fields
+        @fields
+      end
 
       # 
       # Tells the search to explain the scoring
