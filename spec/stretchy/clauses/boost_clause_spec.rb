@@ -4,16 +4,9 @@ describe Stretchy::Clauses::BoostClause do
   let(:base) { Stretchy::Clauses::Base.new }
   subject    { described_class.new(base) }
 
-  describe 'initialize with' do
-    specify 'base' do
-      instance = described_class.new(base)
-      expect(instance).to be_a(described_class)
-    end
-
-    specify 'inverse option' do
-      instance = described_class.new(base, inverse: true)
-      expect(instance.inverse?).to eq(true)
-    end
+  specify 'base' do
+    instance = described_class.new(base)
+    expect(instance).to be_a(described_class)
   end
 
   describe 'can add option' do

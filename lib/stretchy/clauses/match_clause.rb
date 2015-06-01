@@ -21,7 +21,11 @@ module Stretchy
       # 
       # @return [MatchClause] Temporary clause outside current state
       def self.tmp(options = {})
-        self.new(Base.new, options)
+        if options.delete(:inverse)
+          self.new(Base.new).not(options)
+        else
+          self.new(Base.new, options)
+        end
       end
 
       # 
@@ -77,8 +81,10 @@ module Stretchy
       #     my_field: "not_match_1",
       #     other_field: "not_match_2"
       #   )
-      def not(opts_or_str = {}, options = {})
-        self.class.new(self, opts_or_str, options.merge(inverse: true, should: should?))
+      def not(opts_or_str = {})
+        @inverse = true
+        add_params(opts_or_str)
+        self
       end
 
       # 
@@ -88,9 +94,9 @@ module Stretchy
       # 
       # Can be chained with {#not}
       # 
-      # @overload not(opts_or_str)
+      # @overload should(opts_or_str)
       #   @param [String] A string that should be matched anywhere in the document
-      # @overload not(opts_or_str)
+      # @overload should(opts_or_str)
       #   @param [Hash] A hash of fields and strings that should be matched in those fields
       # 
       # @param opts_or_str = {} [type] [description]
@@ -114,8 +120,11 @@ module Stretchy
       #   )
       # 
       # @see http://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-bool-query.html Elastic Docs - Bool Query
-      def should(opts_or_str = {}, options = {})
-        self.class.new(self, opts_or_str, options.merge(should: true))
+      def should(opts_or_str = {})
+        @should  = true
+        @inverse = false
+        add_params(opts_or_str)
+        self
       end
 
       # 

@@ -48,7 +48,7 @@ module Stretchy
           @where_builder      = base.where_builder
           @boost_builder      = base.boost_builder
           @aggregate_builder  = base.aggregate_builder
-          @inverse            = options[:inverse] || base.inverse
+          @inverse            = options[:inverse]
           @limit              = base.get_limit
           @offset             = base.get_offset
           @explain            = base.get_explain
@@ -213,17 +213,21 @@ module Stretchy
 
       # 
       # Used for boosting the relevance score of
-      # search results. Options passed here correspond
-      # to `where`-style filters which boost a document
-      # if matched.
+      # search results. `match` and `where` clauses
+      # added after `boost` will be applied as
+      # boosting functions instead of filters
       # 
-      # @param options = {} [type] [description]
+      # @example Boost documents that match a filter
+      #   query.boost.where('post.user_id' => current_user.id)
+      # 
+      # @example Boost documents that match fulltext search
+      #   query.boost.match('user search terms')
       # 
       # @return [BoostClause] query in boost context
       # 
       # @see http://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-function-score-query.html Elastic Docs - Function Score Query
-      def boost(options = {})
-        BoostClause.new(self, options)
+      def boost
+        BoostClause.new(self)
       end
 
       # 
@@ -243,9 +247,9 @@ module Stretchy
       #   is given (ie, doing a full-text search across the whole document)
       def not(opts_or_string = {}, opts = {})
         if opts_or_string.is_a?(Hash)
-          WhereClause.new(self, opts_or_string.merge(inverse: true))
+          WhereClause.new(self).not(opts_or_string)
         else
-          MatchClause.new(self, opts_or_string, opts.merge(inverse: true))
+          MatchClause.new(self).not(opts_or_string)
         end
       end
 
@@ -269,9 +273,9 @@ module Stretchy
       # @see http://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-bool-filter.html Elastic Docs - Bool Filter
       def should(opts_or_string = {}, opts = {})
         if opts_or_string.is_a?(Hash)
-          WhereClause.new(self, opts_or_string.merge(should: true))
+          WhereClause.new(self).should(opts_or_string)
         else
-          MatchClause.new(self, opts_or_string, opts.merge(should: true))
+          MatchClause.new(self).should(opts_or_string)
         end
       end
 

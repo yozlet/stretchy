@@ -30,10 +30,8 @@ module Stretchy
       def initialize(base, opts_or_string = {}, options = {})
         super(base)
         if opts_or_string.is_a?(Hash)
-          @inverse = opts_or_string.delete(:inverse) || options.delete(:inverse)
           match_function(opts_or_string.merge(options))
         else
-          @inverse = options.delete(:inverse)
           match_function(options.merge('_all' => opts_or_string))
         end
       end
@@ -50,8 +48,14 @@ module Stretchy
       #   @param opts_or_string [Hash] Fields and values that should not match in the document
       # 
       # @return [BoostMatchClause] Query with inverse matching boost function applied
-      def not(opts_or_string = {}, options = {})
-        self.class.new(self, opts_or_string, options.merge(inverse: !inverse?))
+      def not(opts_or_string = {})
+        @inverse = true
+        if opts_or_string.is_a?(Hash)
+          match_function(opts_or_string)
+        else
+          match_function('_all' => opts_or_string)
+        end
+        self
       end
 
       # 

@@ -31,7 +31,11 @@ module Stretchy
       # 
       # @return [WhereClause] A clause outside the main query context
       def self.tmp(options = {})
-        self.new(Base.new, options)
+        if options.delete(:inverse)
+          self.new(Base.new).not(options)
+        else
+          self.new(Base.new, options)
+        end
       end
 
       # 
@@ -60,8 +64,6 @@ module Stretchy
       # 
       def initialize(base, options = {})
         super(base)
-        @inverse = options.delete(:inverse)
-        @should  = options.delete(:should)
         add_params(options)
       end
 
@@ -153,7 +155,9 @@ module Stretchy
       #     match_field: [:these, "options"]
       #   )
       def not(options = {})
-        self.class.new(self, options.merge(inverse: true, should: should?))
+        @inverse = true
+        add_params(options)
+        self
       end
 
       # 
@@ -178,7 +182,10 @@ module Stretchy
       #     exists_field: nil
       #   ) 
       def should(options = {})
-        self.class.new(self, options.merge(should: true))
+        @inverse = false
+        @should  = true
+        add_params(options)
+        self
       end
 
       # 
@@ -190,7 +197,7 @@ module Stretchy
       # @return [Boosts::FilterBoost] A boost including all the current filters
       def to_boost(weight = nil)
         weight ||= Stretchy::Boosts::FilterBoost::DEFAULT_WEIGHT
-        
+
         if @match_builder.any? && @where_builder.any?
           Stretchy::Boosts::FilterBoost.new(
             filter: Stretchy::Filters::QueryFilter.new(

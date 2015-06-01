@@ -11,19 +11,8 @@ describe Stretchy::Clauses::BoostWhereClause do
       expect(instance).to be_a(Stretchy::Clauses::Base)
     end
 
-    specify 'inverse option' do
-      instance = described_class.new(base, inverse: true)
-      expect(instance.inverse?).to eq(true)
-    end
-
     specify 'params' do
       instance = described_class.new(base, number_field: 27)
-      expect(instance.boost_builder.functions).to include(Stretchy::Boosts::FilterBoost)
-    end
-
-    specify 'inverse params' do
-      instance = described_class.new(base, number_field: 27, inverse: true)
-      expect(instance.boost_builder.functions.count).to eq(1)
       expect(instance.boost_builder.functions).to include(Stretchy::Boosts::FilterBoost)
     end
   end
