@@ -7,6 +7,10 @@ describe Stretchy::Results::Base do
 
   subject { described_class.new(request) }
 
+  it 'accesses fields' do
+    expect(subject.fields).to eq(request.get_fields)
+  end
+
   it 'accesses limit' do
     expect(subject.limit).to eq(request.get_limit)
     expect(subject.limit_value).to eq(request.get_limit)

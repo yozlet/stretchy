@@ -79,6 +79,23 @@ describe Stretchy::Clauses::Base do
     expect(query.get_aggregations[:all_products][:aggs][:avg_price][:avg][:field]).to eq(:price)
   end
 
+  describe 'accepts fields params with' do
+    specify 'arguments' do
+      query = subject.fields(:name, 'games.id')
+      expect(subject.get_fields).to match_array([:name, 'games.id'])
+    end
+
+    specify 'array' do
+      query = subject.fields(['games.id', :name])
+      expect(subject.get_fields).to match_array([:name, 'games.id'])
+    end
+
+    specify 'nil' do
+      query = subject.fields
+      expect(subject.get_fields).to eq([])
+    end
+  end
+
   it 'defaults to match all query' do
     expect(described_class.new.to_search).to eq(match_all: {})
   end
