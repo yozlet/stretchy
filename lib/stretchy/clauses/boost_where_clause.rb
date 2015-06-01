@@ -21,8 +21,8 @@ module Stretchy
       # 
       # @return [BoostWhereClause] Query with filter boosts applied
       def initialize(base, options = {})
-        super(base, options)
-        where_function(:init, options)
+        super(base)
+        where_function(:init, options) if options.any?
         self
       end
 

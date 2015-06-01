@@ -37,42 +37,14 @@ describe Stretchy::Clauses::WhereClause do
       end
     end
 
-    specify 'inverse option' do
-      instance = described_class.new(base,
-        field_one: 27,
-        inverse: true
-      )
-      expect(instance.inverse?).to eq(true)
-      expect(instance.where_builder.antiterms[:field_one]).to include(27)
-
-      [:matches, :antimatches, :shouldmatches, :shouldnotmatches].each do |field|
-        expect(instance.match_builder.send(field)[:inverse]).to be_empty
-      end
-
-      [:terms, :shouldterms, :antiterms, :shouldnotterms].each do |field|
-        expect(instance.where_builder.send(field)[:inverse]).to be_empty
-      end
-    end
-
-    specify 'should option' do
-      instance = described_class.new(base,
-        field_one: 27,
-        should: true
-      )
-      expect(instance.should?).to eq(true)
-      expect(instance.where_builder.shouldterms[:field_one]).to include(27)
-
-      [:matches, :antimatches, :shouldmatches, :shouldnotmatches].each do |field|
-        expect(instance.match_builder.send(field)[:should]).to be_empty
-      end
-      
-      [:terms, :shouldterms, :antiterms, :shouldnotterms].each do |field|
-        expect(instance.where_builder.send(field)[:should]).to be_empty
-      end
-    end
-
     specify 'tmp' do
       expect(described_class.tmp).to be_a(described_class)
+    end
+
+    specify 'tmp with inverse option' do
+      instance = described_class.tmp(field_one: 1, inverse: true)
+      expect(instance.inverse?).to eq(true)
+      expect(instance.where_builder.antiterms[:field_one]).to include(1)
     end
   end
 

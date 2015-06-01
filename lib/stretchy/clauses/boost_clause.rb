@@ -31,9 +31,8 @@ module Stretchy
       # @param options = {} [Hash] Options for the boost clause
       # @option options [true, false] :inverse (nil) If this boost should also be in the inverse state
       # 
-      def initialize(base, options = {})
+      def initialize(base)
         super(base)
-        @inverse = options.delete(:inverse)
       end
 
       # 
@@ -199,7 +198,8 @@ module Stretchy
       # 
       # @return [BoostClause] Boost clause in inverse context
       def not(options = {})
-        self.class.new(self, options.merge(inverse: !inverse?))
+        @inverse = true
+        self
       end
 
     end
