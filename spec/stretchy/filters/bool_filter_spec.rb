@@ -5,15 +5,15 @@ describe Stretchy::Filters::BoolFilter do
   let(:terms_filter) { Stretchy::Filters::TermsFilter.new('name', 'Masahiro Sakurai') }
   let(:range_filter) do
     Stretchy::Filters::RangeFilter.new(
-      field: 'salary',
+      'salary',
       min: 100,
       max: 200
     )
   end
   let(:geo_filter) do
     Stretchy::Filters::GeoFilter.new(
-      field: 'coords',
-      distance: '50km',
+      'coords',
+      '50km',
       lat: 35.0117,
       lng: 135.7683
     )

@@ -4,7 +4,7 @@ describe Stretchy::Filters::OrFilter do
   let(:terms_filter) { Stretchy::Filters::TermsFilter.new('name', 'Masahiro Sakurai') }
   let(:range_filter) do
     Stretchy::Filters::RangeFilter.new(
-      field: 'salary',
+      'salary',
       min: 100,
       max: 200
     )

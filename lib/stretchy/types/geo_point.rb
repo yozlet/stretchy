@@ -11,9 +11,14 @@ module Stretchy
 
 
       def initialize(options = {})
-        @lat = options[:lat] || options[:latitude]
-        @lon = options[:lng] || options[:lon] ||
-               options[:longitude]
+        if options.is_a?(self.class)
+          @lat = options.lat
+          @lon = options.lon
+        else
+          @lat = options[:lat] || options[:latitude]
+          @lon = options[:lng] || options[:lon] ||
+                 options[:longitude]
+        end
 
         validate!
       end

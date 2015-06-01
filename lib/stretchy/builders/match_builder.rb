@@ -2,69 +2,67 @@ module Stretchy
   module Builders
     class MatchBuilder
 
-      attr_accessor :matches,           :matchops, 
-                    :antimatches,       :antimatchops,
-                    :shouldmatches,     :shouldmatchops,
-                    :shouldnotmatches,  :shouldnotmatchops
+      attr_accessor :must, :must_not, :should, :should_not
 
       def initialize
-        @matches           = Hash.new { [] }
-        @matchops          = Hash.new { 'and' }
-        
-        @antimatches       = Hash.new { [] }
-        @antimatchops      = Hash.new { 'and' }
-        
-        @shouldmatches     = Hash.new { [] }
-        @shouldmatchops    = Hash.new { 'and' }
-        
-        @shouldnotmatches  = Hash.new { [] }
-        @shouldnotmatchops = Hash.new { 'and' }
+        @must       = QueryBuilder.new
+        @must_not   = QueryBuilder.new
+        @should     = QueryBuilder.new
+        @should_not = QueryBuilder.new
       end
 
       def any?
-        @matches.any? || @antimatches.any? || @shouldmatches.any? || @shouldnotmatches.any?
+        must.any? || must_not.any? || should.any? || should_not.any?
       end
 
-      def build
+      def add_matches(field, matches, options = {})
+        builder_from_options(options).add_matches(field, matches, options)
+      end
+
+      def to_query
         return Stretchy::Queries::MatchAllQuery.new unless any?
 
-        if @matches.count > 1   || @antimatches.any? || 
-           @shouldmatches.any?  || @shouldnotmatches.any?
-          
+        if use_bool?
           bool_query
         else
-          to_queries(@matches, @matchops).first
-        end
-      end
-
-      def bool_query
-        Stretchy::Queries::BoolQuery.new(
-          must:     to_queries(@matches, @matchops),
-          must_not: to_queries(@antimatches, @antimatchops),
-          should:   build_should
-        )
-      end
-
-      def build_should
-        if @shouldnotmatches.any?
-          Stretchy::Queries::BoolQuery.new(
-            must:     to_queries(@shouldmatches, @shouldmatchops),
-            must_not: to_queries(@shouldnotmatches, @shouldnotmatchops)
-          )
-        else
-          to_queries(@shouldmatches, @shouldmatchops)
+          must.to_query.first
         end
       end
 
       private
 
-        def to_queries(matches, operators)
-          matches.map do |field, strings|
-            Stretchy::Queries::MatchQuery.new(
-              field:    field,
-              string:   strings.join(' '),
-              operator: operators[field]
+        def builder_from_options(options = {})
+          if options[:inverse] && options[:should]
+            should_not
+          elsif options[:inverse]
+            must_not
+          elsif options[:should]
+            should
+          else
+            must
+          end
+        end
+        
+        def use_bool?
+          must.count > 1 || must_not.any? || should.any? || should_not.any?
+        end
+
+        def bool_query
+          Stretchy::Queries::BoolQuery.new(
+            must:     must.to_query,
+            must_not: must_not.to_query,
+            should:   build_should
+          )
+        end
+
+        def build_should
+          if should.count > 1 || should_not.any?
+            Stretchy::Queries::BoolQuery.new(
+              must:     should.to_query,
+              must_not: should_not.to_query
             )
+          else
+            should.to_query.first
           end
         end
 

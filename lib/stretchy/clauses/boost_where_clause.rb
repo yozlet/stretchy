@@ -40,7 +40,7 @@ module Stretchy
       # 
       # @return [WhereClause] Query with where clause applied
       def where(*args)
-        WhereClause.new(self, *args)
+        WhereClause.new(base, *args)
       end
 
       # 
@@ -57,7 +57,7 @@ module Stretchy
       # 
       # @return [MatchClause] Base context with match queries applied
       def match(*args)
-        MatchClause.new(self, *args)
+        MatchClause.new(base, *args)
       end
 
       # 
@@ -73,7 +73,7 @@ module Stretchy
       # @return [Base] Query in base context with range boost applied
       def range(*args)
         where_function(:range, *args)
-        Base.new(self)
+        Base.new(base)
       end
 
       # 
@@ -93,7 +93,7 @@ module Stretchy
       # @return [Base] Query in base context with geo filter boost applied
       def geo(*args)
         where_function(:geo, *args)
-        Base.new(self)
+        Base.new(base)
       end
 
       private
@@ -115,7 +115,7 @@ module Stretchy
           end
           boost     = clause.to_boost(weight)
 
-          @boost_builder.functions << boost if boost
+          base.boost_builder.functions << boost if boost
         end
     end
   end

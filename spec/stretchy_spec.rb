@@ -106,11 +106,12 @@ describe Stretchy do
                 .boost.match.not('boost_not_match_any')
                 .boost.match.not(boost_match_not_field: 'boost_match_not_string')
       
-      result = clause.to_search
+      result = clause.request
+      pp [:request, result]
       # puts JSON.pretty_generate clause.to_search
       expect(clause.results).to be_a(Array)
 
-      filtered_query = result[:function_score][:query][:filtered]
+      filtered_query = result[:query][:function_score][:query][:filtered]
       
       query = filtered_query[:query][:bool][:must]
       expect(query).to include(match: { '_all' => { query: 'all_match', operator: 'and' }})
@@ -123,7 +124,7 @@ describe Stretchy do
         }
       })
 
-      not_query = result[:function_score][:query][:filtered][:query][:bool][:must_not]
+      not_query = result[:query][:function_score][:query][:filtered][:query][:bool][:must_not]
       expect(not_query).to include(match: {'_all' => { query: 'all_not_match', operator: 'and'}})
       expect(not_query).to include(match: {not_match_field: { query: 'not_match_field_string', operator: 'and'}})
       expect(not_query).to include(match: {must_not_string_field: { query: 'must_not_string', operator: 'or'}})
@@ -184,7 +185,7 @@ describe Stretchy do
         }
       })
 
-      boosts = result[:function_score][:functions]
+      boosts = result[:query][:function_score][:functions]
       expect(boosts.any?).to eq(true)
 
       expect(boosts).to include(
@@ -247,7 +248,7 @@ describe Stretchy do
                   must_not: [
                     {
                       exists: {
-                        field: :boost_nil_field
+                        field: 'boost_nil_field'
                       }
                     }
                   ]

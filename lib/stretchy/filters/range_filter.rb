@@ -6,11 +6,11 @@ module Stretchy
     class RangeFilter < Base
 
       contract field: {type: :field, required: true},
-               range: {type: Stretchy::Types::Range, required: true}
+               range: {type: Types::Range, required: true}
 
-      def initialize(options = {})
-        @field = options[:field]
-        @range = options[:stretchy_range] || Stretchy::Types::Range.new(options)
+      def initialize(field, range_options)
+        @field = field
+        @range = Types::Range.new(range_options)
         validate!
       end
 

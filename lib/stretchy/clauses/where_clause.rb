@@ -32,9 +32,9 @@ module Stretchy
       # @return [WhereClause] A clause outside the main query context
       def self.tmp(options = {})
         if options.delete(:inverse)
-          self.new(Base.new).not(options)
+          self.new(Builders::ShellBuilder.new).not(options)
         else
-          self.new(Base.new, options)
+          self.new(Builders::ShellBuilder.new, options)
         end
       end
 
@@ -62,7 +62,7 @@ module Stretchy
       # 
       # @see http://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-range-filter.html Elastic Docs - Range Filter
       # 
-      def initialize(base, options = {})
+      def initialize(base = nil, options = {})
         super(base)
         add_params(options)
       end
@@ -98,7 +98,7 @@ module Stretchy
       #     exclusive: true
       #   )
       def range(field, options = {})
-        get_storage(:ranges)[field] = Stretchy::Types::Range.new(options)
+        base.where_builder.add_range(field, options.merge(inverse: inverse?, should: should?))
         self
       end
 
@@ -124,10 +124,9 @@ module Stretchy
       #     lng: 29.2
       #   )
       def geo(field, options = {})
-        get_storage(:geos)[field] = {
-          distance:  options[:distance],
-          geo_point: Stretchy::Types::GeoPoint.new(options)
-        }
+        distance = options[:distance]
+        opts = options.merge(inverse: inverse?, should: should?)
+        base.where_builder.add_geo(field, distance, opts)
         self
       end
 
@@ -198,54 +197,34 @@ module Stretchy
       def to_boost(weight = nil)
         weight ||= Stretchy::Boosts::FilterBoost::DEFAULT_WEIGHT
 
-        if @match_builder.any? && @where_builder.any?
+        if base.match_builder.any? && base.where_builder.any?
           Stretchy::Boosts::FilterBoost.new(
             filter: Stretchy::Filters::QueryFilter.new(
               Stretchy::Queries::FilteredQuery.new(
-                query:  @match_builder.build,
-                filter: @where_builder.build
+                query:  base.match_builder.to_query,
+                filter: base.where_builder.to_filter
               )
             ),
             weight: weight
           )
         
-        elsif @match_builder.any?
+        elsif base.match_builder.any?
           Stretchy::Boosts::FilterBoost.new(
             filter: Stretchy::Filters::QueryFilter.new(
-              @match_builder.build
+              base.match_builder.to_query
             ),
             weight: weight
           )
 
-        elsif @where_builder.any?
+        elsif base.where_builder.any?
           Stretchy::Boosts::FilterBoost.new(
-            filter: @where_builder.build,
+            filter: base.where_builder.to_filter,
             weight: weight
           )
         end
       end
 
       private
-
-        def get_storage(builder_field, is_inverse = nil)
-          is_inverse = inverse? if is_inverse.nil?
-          field = builder_field.to_s
-          if inverse? || is_inverse
-            if should?
-              field = "shouldnot#{field}"
-            else
-              field = "anti#{field}"
-            end
-          else
-            field = "should#{field}" if should?
-          end
-          
-          if field =~ /match/
-            @match_builder.send(field)
-          else
-            @where_builder.send(field)
-          end
-        end
         
         def add_params(options = {})
           options.each do |field, param|
@@ -263,15 +242,17 @@ module Stretchy
 
         def add_param(field, param)
           case param
-          when nil
-            get_storage(:exists, true) << field
           when String, Symbol
-            get_storage(:matches)[field] += Array(param)
-            get_storage(:matchops)[field] = 'or'
-          when Range
-            get_storage(:ranges)[field] = Stretchy::Types::Range.new(param)
+            base.match_builder.add_matches(field, param, 
+              inverse:  inverse?,
+              should:   should?,
+              or: true
+            )
           else
-            get_storage(:terms)[field] += Array(param)
+            base.where_builder.add_param(field, param,
+              inverse:  inverse?,
+              should:   should?
+            )
           end
         end
 

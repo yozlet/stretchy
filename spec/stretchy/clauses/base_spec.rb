@@ -18,26 +18,28 @@ describe Stretchy::Clauses::Base do
     expect(subject.boost).to be_a(Stretchy::Clauses::BoostClause)
   end
 
-  it 'delegates not() correctly' do
-    instance = subject.not('not match string')
-    expect(instance).to be_a(Stretchy::Clauses::MatchClause)
-    expect(instance.inverse?).to eq(true)
-    expect(instance.match_builder.antimatches['_all']).to include('not match string')
-
-    instance = subject.not(field: 'string')
-    expect(instance).to be_a(Stretchy::Clauses::WhereClause)
-    expect(instance.match_builder.antimatches[:field]).to include('string')
+  it 'delegates not() to MatchClause with string arguments' do
+    not_string = 'not match string'
+    expect_any_instance_of(Stretchy::Clauses::MatchClause).to receive(:not).with(not_string)
+    subject.not(not_string)
   end
 
-  it 'delegates should() correctly' do
-    instance = subject.should('match string')
-    expect(instance).to be_a(Stretchy::Clauses::MatchClause)
-    expect(instance.should?).to eq(true)
-    expect(instance.match_builder.shouldmatches['_all']).to include('match string')
+  it 'delegates not() to WhereClause with hash arguments' do
+    not_hash = {field: 'string'}
+    expect_any_instance_of(Stretchy::Clauses::WhereClause).to receive(:not).with(not_hash)
+    subject.not(not_hash)
+  end
 
-    instance = subject.should(field: 'string')
-    expect(instance).to be_a(Stretchy::Clauses::WhereClause)
-    expect(instance.match_builder.shouldmatches[:field]).to include('string')
+  it 'delegates should() to MatchClause with string arguments' do
+    string = 'match string'
+    expect_any_instance_of(Stretchy::Clauses::MatchClause).to receive(:should).with(string)
+    subject.should(string)
+  end
+
+  it 'delegates should() to WhereClause with hash arguments' do
+    hash = {field: 'field string'}
+    expect_any_instance_of(Stretchy::Clauses::WhereClause).to receive(:should).with(hash)
+    subject.should(hash)
   end
 
   it 'sets limit' do
@@ -96,16 +98,8 @@ describe Stretchy::Clauses::Base do
     end
   end
 
-  it 'defaults to match all query' do
-    expect(described_class.new.to_search).to eq(match_all: {})
-  end
-
   it 'is not inverse by default' do
     expect(subject.inverse?).to eq(false)
-  end
-
-  it 'produces request json via to_search' do
-    expect(subject.to_search).to be_a(Hash)
   end
 
   it 'returns a results object' do

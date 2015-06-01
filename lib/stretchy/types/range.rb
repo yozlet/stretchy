@@ -2,7 +2,7 @@ module Stretchy
   module Types
     class Range < Base
 
-      attr_reader :min, :max, :exclusive_min, :exclusive_max
+      attr_reader :min, :max, :exclusive_min, :exclusive_max, :inverse, :should
 
       contract    min: { type: [Numeric, Date, Time] },
                   max: { type: [Numeric, Date, Time] },
@@ -17,12 +17,21 @@ module Stretchy
           @max = opts_or_range.max
           @exclusive_min = !!(options[:exclusive_min] || options[:exclusive])
           @exclusive_max = !!(options[:exclusive_max] || options[:exclusive])
+          @inverse       = !!options[:inverse]
+          @should        = !!options[:should]
         when ::Hash
           opts = options.merge(opts_or_range)
           @min = opts[:min]
           @max = opts[:max]
           @exclusive_min = !!(opts[:exclusive_min] || opts[:exclusive])
           @exclusive_max = !!(opts[:exclusive_max] || opts[:exclusive])
+          @inverse       = !!opts[:inverse]
+          @should        = !!opts[:should]
+        when Range
+          @min = opts_or_range.min
+          @max = opts_or_range.max
+          @exclusive_min = opts_or_range.exclusive_min
+          @exclusive_max = opts_or_range.exclusive_max
         else
           raise Stretchy::Errors::ContractError.new("Ranges must be a range or a hash - found #{options.class.name}")
         end

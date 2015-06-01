@@ -9,10 +9,10 @@ module Stretchy
               geo_point: {type: Stretchy::Types::GeoPoint, required: true},
                   field: {type: :field, required: true}
 
-      def initialize(options = {})
-        @field      = options[:field]
-        @distance   = options[:distance]
-        @geo_point  = options[:geo_point] || Stretchy::Types::GeoPoint.new(options)
+      def initialize(field, distance, geo_point)
+        @field      = field
+        @distance   = distance
+        @geo_point  = Types::GeoPoint.new(geo_point)
         validate!
       end
 

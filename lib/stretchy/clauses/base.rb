@@ -16,11 +16,7 @@ module Stretchy
 
       extend Forwardable
 
-      DEFAULT_LIMIT   = 30
-      DEFAULT_OFFSET  = 0
-
-      attr_accessor :match_builder, :where_builder, :boost_builder, 
-                    :aggregate_builder, :inverse, :type, :index_name
+      attr_reader :base
 
       delegate [:request, :response, :results, :ids, :hits, 
                 :took, :shards, :total, :max_score, :total_pages] => :query_results
@@ -39,33 +35,16 @@ module Stretchy
       #   @option base_or_opts [String] :index        The Elastic index to query
       #   @option base_or_opts [String] :type         The Lucene type to query on
       #   @option base_or_opts [true, false] :inverse Whether we are in a `not` context
-      def initialize(base_or_opts = nil, options = {})
-        if base_or_opts && !base_or_opts.is_a?(Hash)
-          base                = base_or_opts
-          @index_name         = base.index_name
-          @type               = base.type
-          @match_builder      = base.match_builder
-          @where_builder      = base.where_builder
-          @boost_builder      = base.boost_builder
-          @aggregate_builder  = base.aggregate_builder
-          @inverse            = options[:inverse]
-          @limit              = base.get_limit
-          @offset             = base.get_offset
-          @explain            = base.get_explain
-          @fields             = base.get_fields
+      def initialize(base = nil, options = {})
+        if base.is_a?(Builders::ShellBuilder)
+          @base = base
+        elsif base.nil?
+          @base = Builders::ShellBuilder.new
         else
-          options = Hash(base_or_opts).merge(options)
-          @index_name         = options[:index] || Stretchy.index_name
-          @type               = options[:type]
-          @match_builder      = Stretchy::Builders::MatchBuilder.new
-          @where_builder      = Stretchy::Builders::WhereBuilder.new
-          @boost_builder      = Stretchy::Builders::BoostBuilder.new
-          @aggregate_builder  = {}
-          @inverse            = options[:inverse]
-          @limit              = DEFAULT_LIMIT
-          @offset             = DEFAULT_OFFSET
-          @fields             = nil
+          @base = Builders::ShellBuilder.new(base)
         end
+        @base.index = options[:index] if options[:index]
+        @base.type  = options[:type]  if options[:type]
       end
 
       # 
@@ -78,7 +57,7 @@ module Stretchy
       # 
       # @return [self]
       def limit(num)
-        @limit = num
+        base.limit = num
         self
       end
 
@@ -87,7 +66,7 @@ module Stretchy
       # 
       # @return [Integer] Value of `@limit`
       def get_limit
-        @limit
+        base.limit
       end
       alias :limit_value :get_limit
 
@@ -101,7 +80,7 @@ module Stretchy
       # 
       # @return [self]
       def offset(num)
-        @offset = num
+        base.offset = num
         self
       end
       alias :per_page :offset
@@ -111,7 +90,7 @@ module Stretchy
       # 
       # @return [Integer] Offset for query
       def get_offset
-        @offset
+        base.offset
       end
 
       # 
@@ -121,8 +100,8 @@ module Stretchy
       # 
       # @return [self] Allows continuing the query chain
       def page(num, options = {})
-        @limit  = options[:limit] || options[:per_page] || @limit
-        @offset = [(num - 1), 0].max.ceil * @limit
+        base.limit  = options[:limit] || options[:per_page] || get_limit
+        base.offset = [(num - 1), 0].max.ceil * get_limit
         self
       end
 
@@ -131,7 +110,7 @@ module Stretchy
       # 
       # @return [Integer] (offset / limit).ceil
       def get_page
-        (@offset.to_f / @limit).ceil + 1
+        base.page
       end
       alias :current_page :get_page
 
@@ -150,8 +129,8 @@ module Stretchy
       # 
       # @return [self] Allows continuing the query chain
       def fields(*args)
-        @fields ||= []
-        @fields += args.flatten if args.any?
+        base.fields ||= []
+        base.fields += args.flatten if args.any?
         self
       end
 
@@ -160,7 +139,7 @@ module Stretchy
       # 
       # @return [Array] List of fields in the current query
       def get_fields
-        @fields
+        base.fields
       end
 
       # 
@@ -171,12 +150,12 @@ module Stretchy
       # 
       # @return [self] Allows continuing the query chain
       def explain
-        @explain = true
+        base.explain = true
         self
       end
 
       def get_explain
-        !!@explain
+        !!base.explain
       end
 
       # 
@@ -192,7 +171,7 @@ module Stretchy
       # 
       # @see http://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-match-query.html Elastic Docs - Match Query
       def match(options = {})
-        MatchClause.new(self, options)
+        MatchClause.new(base, options)
       end
       alias :fulltext :match
 
@@ -207,7 +186,7 @@ module Stretchy
       # 
       # @see  WhereClause#initialize
       def where(options = {})
-        WhereClause.new(self, options)
+        WhereClause.new(base, options)
       end
       alias :filter :where
 
@@ -227,7 +206,7 @@ module Stretchy
       # 
       # @see http://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-function-score-query.html Elastic Docs - Function Score Query
       def boost
-        BoostClause.new(self)
+        BoostClause.new(base)
       end
 
       # 
@@ -245,11 +224,11 @@ module Stretchy
       # 
       # @return [Base] A {WhereClause}, or a {MatchClause} if only a string 
       #   is given (ie, doing a full-text search across the whole document)
-      def not(opts_or_string = {}, opts = {})
+      def not(opts_or_string = {})
         if opts_or_string.is_a?(Hash)
-          WhereClause.new(self).not(opts_or_string)
+          WhereClause.new(base).not(opts_or_string)
         else
-          MatchClause.new(self).not(opts_or_string)
+          MatchClause.new(base).not(opts_or_string)
         end
       end
 
@@ -271,11 +250,11 @@ module Stretchy
       # @see http://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-bool-query.html Elastic Docs - Bool Query
       # 
       # @see http://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-bool-filter.html Elastic Docs - Bool Filter
-      def should(opts_or_string = {}, opts = {})
+      def should(opts_or_string = {})
         if opts_or_string.is_a?(Hash)
-          WhereClause.new(self).should(opts_or_string)
+          WhereClause.new(base).should(opts_or_string)
         else
-          MatchClause.new(self).should(opts_or_string)
+          MatchClause.new(base).should(opts_or_string)
         end
       end
 
@@ -286,13 +265,13 @@ module Stretchy
       # 
       # @return [self] Allows continuing the query chain
       def aggregations(opts = {})
-        @aggregate_builder = @aggregate_builder.merge(opts)
+        base.aggregate_builder = base.aggregate_builder.merge(opts)
         self
       end
       alias :aggs :aggregations
 
       def get_aggregations
-        @aggregate_builder
+        base.aggregate_builder
       end
       alias :get_aggs :get_aggregations
 
@@ -305,37 +284,13 @@ module Stretchy
       end
 
       # 
-      # Compiles the internal representation of your filters,
-      # full-text queries, and boosts into the JSON to be 
-      # passed to Elastic. If you want to know exactly what
-      # your query generated, you can call this method.
-      # 
-      # @return [Hash] the query hash to be compiled to json 
-      #   and sent to Elastic
-      def to_search
-        return @to_search if @to_search
-        
-        @to_search = if @where_builder.any?
-          Stretchy::Queries::FilteredQuery.new(
-            query:  @match_builder.build,
-            filter: @where_builder.build
-          )
-        else
-          @match_builder.build
-        end
-
-        @to_search = @boost_builder.build(@to_search) if @boost_builder.any?
-        @to_search = @to_search.to_search
-      end
-
-      # 
       # The Results object for this query, which handles
       # sending the search request and providing convienent
       # accessors for the response.
       # 
       # @return [Results::Base] The results returned from Elastic
       def query_results
-        @query_results ||= Stretchy::Results::Base.new(self)
+        @query_results ||= Stretchy::Results::Base.new(base)
       end
 
     end
