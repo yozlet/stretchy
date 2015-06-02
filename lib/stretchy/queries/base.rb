@@ -1,10 +1,10 @@
-require 'stretchy/utils/contract'
+require 'stretchy/utils/validation'
 
 module Stretchy
   module Queries
     class Base
 
-      include Stretchy::Utils::Contract
+      include Stretchy::Utils::Validation
 
       def initialize
         raise "Override this in subclass"

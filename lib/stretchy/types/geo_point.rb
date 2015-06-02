@@ -4,16 +4,25 @@ module Stretchy
   module Types
     class GeoPoint < Base
 
+      attribute :lat
+      attribute :lon
+
+      validations do
+        rule :lat, :latitude
+        rule :lon, :longitude
+      end
+
       attr_reader :lat, :lon
 
-      contract lat: { type: :lat, required: true },
-               lon: { type: :lng, required: true }
-
-
       def initialize(options = {})
-        @lat = options[:lat] || options[:latitude]
-        @lon = options[:lng] || options[:lon] ||
-               options[:longitude]
+        if options.is_a?(self.class)
+          @lat = options.lat
+          @lon = options.lon
+        else
+          @lat = options[:lat] || options[:latitude]
+          @lon = options[:lng] || options[:lon] ||
+                 options[:longitude]
+        end
 
         validate!
       end

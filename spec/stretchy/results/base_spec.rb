@@ -5,7 +5,7 @@ describe Stretchy::Results::Base do
   let(:request) { Stretchy.query(type: FIXTURE_TYPE).match(location: "Japan") }
   let(:found)   { fixture(:sakurai) }
 
-  subject { described_class.new(request) }
+  subject { described_class.new(request.base) }
 
   it 'accesses fields' do
     expect(subject.fields).to eq(request.get_fields)
@@ -102,7 +102,7 @@ describe Stretchy::Results::Base do
         }
       }
     )
-    aggs = described_class.new(query_with_aggs).aggregations
+    aggs = described_class.new(query_with_aggs.base).aggregations
     expect(aggs).to be_a(Hash)
     expect(aggs['game_devs']['avg_salary']['value']).to be_a(Numeric)
   end

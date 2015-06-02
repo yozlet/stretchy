@@ -4,32 +4,18 @@ module Stretchy
 
       extend Forwardable
 
-      attr_reader :clause, :index_name
+      attr_reader :base, :index_name
 
-      delegate [:type, :current_page, :limit_value] => :clause
+      delegate [:type, :current_page, :fields, :offset, :limit,
+                :aggregations] => :base
 
-      def initialize(clause)
-        @clause     = clause
-        @index_name = clause.index_name || Stretchy.index_name
+      def initialize(base)
+        @base       = base
+        @index_name = base.index || Stretchy.index_name
       end
 
-      def limit
-        clause.get_limit
-      end
       alias :per_page :limit
       alias :limit_value :limit
-
-      def fields
-        clause.get_fields
-      end
-
-      def offset
-        clause.get_offset
-      end
-
-      def page
-        clause.get_page
-      end
 
       def total_pages
         [(total.to_f / limit).ceil, 1].max
@@ -37,8 +23,8 @@ module Stretchy
 
       def request
         return @request if @request
-        @request        = {query: clause.to_search}
-        @request[:aggs] = clause.get_aggregations if clause.get_aggregations.any?
+        @request        = {query: base.to_search}
+        @request[:aggs] = base.aggregate_builder if base.aggregate_builder.any?
         @request
       end
 
@@ -50,7 +36,7 @@ module Stretchy
           size: limit
         }
         params[:fields]  = fields   if fields
-        params[:explain] = true     if clause.get_explain
+        params[:explain] = true     if base.explain
         @response ||= Stretchy.search(params)
       end
 

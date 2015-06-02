@@ -1,4 +1,4 @@
-require 'stretchy/utils/contract'
+require 'stretchy/utils/validation'
 require 'stretchy/utils/colorize'
 require 'stretchy/utils/logger'
 require 'stretchy/utils/dot_handler'

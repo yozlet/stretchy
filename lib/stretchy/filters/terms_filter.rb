@@ -4,8 +4,14 @@ module Stretchy
   module Filters
     class TermsFilter < Base
 
-      contract field: {type: :field, required: true},
-               terms: {type: [Numeric, Time, String, Symbol], array: true,  required: true}
+      attribute :field
+      attribute :terms
+
+      validations do
+        rule :field, :field
+        rule :terms, type: {classes: [Numeric, Time, String, Symbol], array: true}
+        rule :terms, :not_empty
+      end
 
       def initialize(field, terms)
         @field = field

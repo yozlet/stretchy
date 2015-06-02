@@ -28,10 +28,10 @@ describe Stretchy::Boosts::FilterBoost do
   end
 
   it 'raises error unless filter is appropriate type' do
-    expect{subject.new(filter: 'wat')}.to raise_error(Stretchy::Errors::ContractError)
+    expect{subject.new(filter: 'wat')}.to raise_error
   end
 
   it 'raises error unless weight is numeric' do
-    expect{subject.new(filter: terms_filter, weight: 'wat')}.to raise_error(Stretchy::Errors::ContractError)
+    expect{subject.new(filter: terms_filter, weight: 'wat')}.to raise_error
   end
 end

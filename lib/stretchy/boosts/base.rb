@@ -1,13 +1,12 @@
-require 'stretchy/utils/contract'
+require 'stretchy/utils/validation'
 
 module Stretchy
   module Boosts
     class Base
 
-      include Stretchy::Utils::Contract
+      include Stretchy::Utils::Validation
 
       DEFAULT_WEIGHT    = 1.2
-      DEFAULT_DECAY_FN  = :gauss
 
       def initialize
         raise "Override this in subclass"

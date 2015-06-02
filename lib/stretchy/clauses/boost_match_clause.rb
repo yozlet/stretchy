@@ -72,7 +72,7 @@ module Stretchy
       # 
       # @return [WhereClause] Query with where clause applied
       def where(*args)
-        WhereClause.new(self, *args)
+        WhereClause.new(base, *args)
       end
 
       # 
@@ -89,7 +89,7 @@ module Stretchy
       # 
       # @return [MatchClause] Base context with match queries applied
       def match(*args)
-        MatchClause.new(self, *args)
+        MatchClause.new(base, *args)
       end
 
       private
@@ -98,7 +98,7 @@ module Stretchy
           weight = options.delete(:weight)
           clause = MatchClause.tmp(options)
           boost  = clause.to_boost(weight)
-          @boost_builder.functions << boost if boost
+          base.boost_builder.functions << boost if boost
         end
 
     end

@@ -2,194 +2,123 @@ module Stretchy
   module Builders
     class WhereBuilder
 
-      attr_accessor :terms,   :antiterms,   :shouldterms,   :shouldnotterms,
-                    :exists,  :antiexists,  :shouldexists,  :shouldnotexists,
-                    :ranges,  :antiranges,  :shouldranges,  :shouldnotranges,
-                    :geos,    :antigeos,    :shouldgeos,    :shouldnotgeos
+      extend Forwardable
+
+      attr_accessor :must, :must_not, :should, :should_not
 
       def initialize(options = {})
-        @terms            = Hash.new { [] }
-        @antiterms        = Hash.new { [] }
-        @shouldterms      = Hash.new { [] }
-        @shouldnotterms   = Hash.new { [] }
-        
-        @ranges           = {}
-        @antiranges       = {}
-        @shouldranges     = {}
-        @shouldnotranges  = {}
-        
-        @geos             = {}
-        @antigeos         = {}
-        @shouldgeos       = {}
-        @shouldnotgeos    = {}
-
-        @exists           = []
-        @antiexists       = []
-        @shouldexists     = []
-        @shouldnotexists  = []
+        @must         = FilterBuilder.new
+        @must_not     = FilterBuilder.new(inverse: true)
+        @should       = FilterBuilder.new(should:  true)
+        @should_not   = FilterBuilder.new(inverse: true, should: true)
       end
 
-      def build
+      def any?
+        must.any? || must_not.any? || should.any? || should_not.any?
+      end
+
+      def use_bool?
+        (must.any? && must_not.any?) || should.any? || should_not.any?
+      end
+
+      def add_param(field, param, options = {})
+        case param
+        when nil
+          builder_from_options(options.merge(inverse: !options[:inverse])).add_exists(field)
+        when ::Range, Types::Range
+          builder_from_options(options).add_range(field, param)
+        else
+          builder_from_options(options).add_terms(field, param)
+        end
+      end
+
+      def add_geo(field, distance, options = {})
+        if options[:geo_point]
+          geo_point = Types::GeoPoint.new(options[:geo_point])
+        else
+          geo_point = Types::GeoPoint.new(options)
+        end
+        
+        builder_from_options(options).add_geo(field, distance, geo_point)
+      end
+
+      def add_range(field, options = {})
+        builder_from_options(options).add_range(field, options)
+      end
+
+      def to_filter
         if use_bool?
           bool_filter
-        elsif musts?
+        elsif must.any?
           and_filter
-        elsif must_nots?
+        elsif must_not.any?
           not_filter
         else
           nil
         end
       end
 
-      def musts?
-        @terms.any? || @exists.any? || @ranges.any? || @geos.any?
-      end
+      private
 
-      def must_nots?
-        @antiterms.any?   || @antiexists.any? || 
-        @antiranges.any?  || @antigeos.any?
-      end
-
-      def shoulds?
-        @shouldterms.any?       ||
-        @shouldranges.any?      ||
-        @shouldgeos.any?        ||
-        @shouldexists.any?
-      end
-
-      def should_nots?
-        @shouldnotterms.any?    ||
-        @shouldnotranges.any?   ||
-        @shouldnotgeos.any?     ||
-        @shouldnotexists.any?
-      end
-
-      def use_bool?
-        (musts? && must_nots?) || shoulds? || should_nots?
-      end
-
-      def any?
-        musts? || must_nots? || shoulds? || should_nots?
-      end
-
-      def bool_filter
-        Stretchy::Filters::BoolFilter.new(
-          must: build_filters(
-            terms:  @terms,
-            exists: @exists,
-            ranges: @ranges,
-            geos:   @geos
-          ),
-          must_not: build_filters(
-            terms:  @antiterms,
-            exists: @antiexists,
-            ranges: @antiranges,
-            geos:   @antigeos
-          ),
-          should: build_should
-        )
-      end
-
-      def and_filter
-        filter = nil
-        filters = build_filters(
-          terms:  @terms,
-          exists: @exists,
-          ranges: @ranges,
-          geos:   @geos
-        )
-        if filters.count > 1
-          filter = Stretchy::Filters::AndFilter.new(filters)
-        else
-          filter = filters.first
-        end
-        filter
-      end
-
-      def not_filter
-        filter = build_filters(
-          terms:    @antiterms,
-          exists:   @antiexists,
-          ranges:   @antiranges,
-          geos:     @antigeos
-        )
-        filter = Stretchy::Filters::OrFilter.new(filter) if filter.count > 1
-        Stretchy::Filters::NotFilter.new(filter)
-      end
-
-      def build_should
-        if shoulds? && should_nots?
-          Stretchy::Filters::BoolFilter.new(
-            must: build_filters(
-              terms:  @shouldterms,
-              exists: @shouldexists,
-              ranges: @shouldranges,
-              geos:   @shouldgeos
-            ),
-            must_not: build_filters(
-              terms:  @shouldnotterms,
-              exists: @shouldnotexists,
-              ranges: @shouldnotranges,
-              geos:   @shouldnotgeos
-            )
-          )
-        elsif should_nots?
-          filters = build_filters(
-            terms:  @shouldnotterms,
-            exists: @shouldnotexists,
-            ranges: @shouldnotranges,
-            geos:   @shouldnotgeos
-          )
-          if filters.count > 1
-            filters = Stretchy::Filters::OrFilter.new(filters) 
+        def builder_from_options(options = {})
+          return must unless options.is_a?(Hash)
+          if options[:inverse] && options[:should]
+            should_not
+          elsif options[:inverse]
+            must_not
+          elsif options[:should]
+            should
           else
-            filters = filters.first
+            must
           end
-          
-          Stretchy::Filters::NotFilter.new(filters)
-        else
-          filters = build_filters(
-            terms:  @shouldterms,
-            exists: @shouldexists,
-            ranges: @shouldranges,
-            geos:   @shouldgeos
-          )
-          filters = Stretchy::Filters::AndFilter.new(filters) if filters.count > 1
-          filters
-        end
-      end
-
-      def build_filters(options = {})
-        filters = []
-        terms       = Hash(options[:terms])
-        ranges      = Hash(options[:ranges])
-        geos        = Hash(options[:geos])
-        near_fields = Hash(options[:near_fields])
-        exists      = Array(options[:exists])
-        
-        terms.each do |field, values|
-          filters << Stretchy::Filters::TermsFilter.new(field, values)
-        end
-        
-        filters += exists.map do |field|
-          Stretchy::Filters::ExistsFilter.new(field)
         end
 
-        filters += ranges.map do |field, value|
-          Stretchy::Filters::RangeFilter.new(field: field, stretchy_range: value)
-        end
-
-        filters += geos.map do |field, values|
-          Stretchy::Filters::GeoFilter.new(
-            field: field,
-            distance: values[:distance],
-            geo_point: values[:geo_point],
-            lat: values[:lat],
-            lng: values[:lng]
+        def bool_filter
+          Stretchy::Filters::BoolFilter.new(
+            must:     must.to_filters,
+            must_not: must_not.to_filters,
+            should:   build_should
           )
         end
-        filters
+
+        def and_filter
+          filter = nil
+          filters = must.to_filters
+          if filters.count > 1
+            filter = Stretchy::Filters::AndFilter.new(filters)
+          else
+            filter = filters.first
+          end
+          filter
+        end
+
+        def not_filter
+          filter = must_not.to_filters
+          filter = Stretchy::Filters::OrFilter.new(filter) if filter.count > 1
+          Stretchy::Filters::NotFilter.new(filter)
+        end
+
+        def build_should
+          if should.any? && should_not.any?
+            Stretchy::Filters::BoolFilter.new(
+              must:     should.to_filters,
+              must_not: should_not.to_filters
+            )
+          elsif should_not.any?
+            filters = should_not.to_filters
+            if filters.count > 1
+              filters = Stretchy::Filters::OrFilter.new(filters) 
+            else
+              filters = filters.first
+            end
+            
+            Stretchy::Filters::NotFilter.new(filters)
+          else
+            filters = should.to_filters
+            filters = Stretchy::Filters::AndFilter.new(filters) if filters.count > 1
+            filters
+          end
+        end
       end
-    end
   end
 end

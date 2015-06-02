@@ -6,9 +6,16 @@ module Stretchy
 
       OPERATORS = ['and', 'or']
 
-      contract field: {type: :field},
-            operator: {type: String, in: OPERATORS},
-              string: {type: String}
+      attribute :field
+      attribute :string
+      attribute :operator
+
+      validations do
+        rule :field, :field
+        rule :operator, inclusion: {in: OPERATORS}
+        rule :string, type: {classes: String}
+        rule :string, :required
+      end
 
       def initialize(options = {})
         case options

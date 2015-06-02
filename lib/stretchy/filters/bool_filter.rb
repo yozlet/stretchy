@@ -4,16 +4,22 @@ module Stretchy
   module Filters
     class BoolFilter < Base
 
-      contract must: {type: Base, array: true},
-           must_not: {type: Base, array: true},
-             should: {type: Base, array: true}
+      attribute :must, Array[Base]
+      attribute :must_not, Array[Base]
+      attribute :should, Array[Base]
+
+      validations do
+        rule :must,     type: {classes: Base, array: true}
+        rule :must_not, type: {classes: Base, array: true}
+        rule :should,   type: {classes: Base, array: true}
+      end
 
       def initialize(options = {})
         @must     = Array(options[:must])
         @must_not = Array(options[:must_not])
         @should   = Array(options[:should])
+        require_one!(:must, :must_not, :should)
         validate!
-        require_one(must: @must, must_not: @must_not, should: @should)
       end
 
       def to_search

@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe Stretchy::Clauses::BoostMatchClause do
-  let(:base) { Stretchy::Clauses::Base.new }
+  let(:base) { Stretchy::Builders::ShellBuilder.new }
   let(:default_weight) { Stretchy::Boosts::Base::DEFAULT_WEIGHT }
   let(:filter_class) { Stretchy::Filters::QueryFilter }
   let(:boost_class) { Stretchy::Boosts::FilterBoost }
@@ -16,16 +16,16 @@ describe Stretchy::Clauses::BoostMatchClause do
 
     specify 'string' do
       instance = described_class.new(base, 'match all string')
-      expect(instance.boost_builder.functions.count).to eq(1)
-      boost = instance.boost_builder.functions.first
+      expect(instance.base.boost_builder.functions.count).to eq(1)
+      boost = instance.base.boost_builder.functions.first
       expect(boost.filter).to be_a(filter_class)
       expect(boost.weight).to eq(default_weight)
     end
 
     specify 'string and options' do
       instance = described_class.new(base, 'match all string', string_field: 'string field matcher')
-      expect(instance.boost_builder.functions.count).to eq(1)
-      boost = instance.boost_builder.functions.first
+      expect(instance.base.boost_builder.functions.count).to eq(1)
+      boost = instance.base.boost_builder.functions.first
       expect(boost).to be_a(boost_class)
       expect(boost.filter).to be_a(filter_class)
       expect(boost.weight).to eq(default_weight)
@@ -33,8 +33,8 @@ describe Stretchy::Clauses::BoostMatchClause do
 
     specify 'string and weight' do
       instance = described_class.new(base, 'match all string', weight: 12)
-      expect(instance.boost_builder.functions.count).to eq(1)
-      boost = instance.boost_builder.functions.first
+      expect(instance.base.boost_builder.functions.count).to eq(1)
+      boost = instance.base.boost_builder.functions.first
       expect(boost.filter).to be_a(filter_class)
       expect(boost.weight).to eq(12)
     end
@@ -44,8 +44,8 @@ describe Stretchy::Clauses::BoostMatchClause do
         weight: 12, 
         string_field: 'match string field'
       )
-      expect(instance.boost_builder.functions.count).to eq(1)
-      boost = instance.boost_builder.functions.first
+      expect(instance.base.boost_builder.functions.count).to eq(1)
+      boost = instance.base.boost_builder.functions.first
       expect(boost.filter).to be_a(filter_class)
       expect(boost.weight).to eq(12)
     end
@@ -65,25 +65,25 @@ describe Stretchy::Clauses::BoostMatchClause do
     specify 'match' do
       instance = subject.match('filtermatch')
       expect(instance).to be_a(Stretchy::Clauses::MatchClause)
-      expect(instance.match_builder.matches['_all']).to include('filtermatch')
+      expect(instance.base.match_builder.must.matches['_all']).to include('filtermatch')
     end
 
     specify 'where' do
       instance = subject.where(filter_field: 27)
       expect(instance).to be_a(Stretchy::Clauses::WhereClause)
-      expect(instance.where_builder.terms[:filter_field]).to include(27)
+      expect(instance.base.where_builder.must.terms[:filter_field]).to include(27)
     end
 
     specify 'range' do
       instance = subject.range(:range_field, min: 33)
       expect(instance).to be_a(Stretchy::Clauses::WhereClause)
-      expect(instance.where_builder.ranges[:range_field]).to be_a(Stretchy::Types::Range)
+      expect(instance.base.where_builder.must.ranges[:range_field]).to be_a(Stretchy::Filters::RangeFilter)
     end
 
     specify 'geo' do
       instance = subject.geo(:geo_field, distance: '33km', lat: 22, lng: 47)
       expect(instance).to be_a(Stretchy::Clauses::WhereClause)
-      expect(instance.where_builder.geos[:geo_field]).to include(distance: '33km')
+      expect(instance.base.where_builder.must.geos[:geo_field]).to be_a(Stretchy::Filters::GeoFilter)
     end
   end
 end

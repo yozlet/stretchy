@@ -50,14 +50,14 @@ describe Stretchy::Boosts::FieldDecayBoost do
     end
 
     specify 'type' do
-      result = get_result(params.merge(type: :exp))
+      result = get_result(params.merge(decay: :exp))
       expect(result[:exp]).to be_a(Hash)
       expect(result[:exp][params[:field]][:origin]).to eq(params[:origin])
       expect(result[:exp][params[:field]][:scale]).to eq(params[:scale])
     end
 
     specify 'decay' do
-      result = get_result(params.merge(decay: 0.5))
+      result = get_result(params.merge(decay_amount: 0.5))
       expect(result[:gauss][params[:field]][:decay]).to eq(0.5)
     end
 

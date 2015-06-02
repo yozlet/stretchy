@@ -16,7 +16,7 @@ module Stretchy
         @functions.any?
       end
 
-      def build(query_or_filter)
+      def to_search(query_or_filter)
         options = { 
           functions:  @functions,
           score_mode: @score_mode,

@@ -45,7 +45,7 @@ module Stretchy
       # 
       # @return [BoostMatchClause] query with boost match state
       def match(options = {})
-        BoostMatchClause.new(self, options)
+        BoostMatchClause.new(base, options)
       end
       alias :fulltext :match
 
@@ -60,7 +60,7 @@ module Stretchy
       # @return [BoostWhereClause] Query state with boost filters applied
       # 
       def where(options = {})
-        BoostWhereClause.new(self, options)
+        BoostWhereClause.new(base, options)
       end
       alias :filter :where
 
@@ -125,8 +125,8 @@ module Stretchy
 
           options[:origin] = Stretchy::Types::GeoPoint.new(options)
         end
-        @boost_builder.functions << Stretchy::Boosts::FieldDecayBoost.new(options)
-        Base.new(self)
+        base.boost_builder.functions << Stretchy::Boosts::FieldDecayBoost.new(options)
+        Base.new(base)
       end
       alias :geo :near
 
@@ -141,8 +141,8 @@ module Stretchy
       # 
       # @see http://www.elastic.co/guide/en/elasticsearch/guide/master/random-scoring.html Elastic Docs - Random Scoring
       def random(*args)
-        @boost_builder.functions << Stretchy::Boosts::RandomBoost.new(*args)
-        Base.new(self)
+        base.boost_builder.functions << Stretchy::Boosts::RandomBoost.new(*args)
+        Base.new(base)
       end
 
       # 
@@ -152,7 +152,7 @@ module Stretchy
       # 
       # @return [self] Boost context with overall boost applied
       def all(num)
-        @boost_builder.overall_boost = num
+        base.boost_builder.overall_boost = num
         self
       end
 
@@ -163,7 +163,7 @@ module Stretchy
       # 
       # @return [self] Boost context with maximum score applied
       def max(num)
-        @boost_builder.max_boost = num
+        base.boost_builder.max_boost = num
         self
       end
 
@@ -175,7 +175,7 @@ module Stretchy
       # 
       # @return [self] Boost context with score mode applied
       def score_mode(mode)
-        @boost_builder.score_mode = mode
+        base.boost_builder.score_mode = mode
         self
       end
 
@@ -187,7 +187,7 @@ module Stretchy
       # 
       # @return [self] Boost context with boost mode applied
       def boost_mode(mode)
-        @boost_builder.boost_mode = mode
+        base.boost_builder.boost_mode = mode
         self
       end
 

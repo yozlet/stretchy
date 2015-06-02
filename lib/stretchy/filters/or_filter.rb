@@ -4,7 +4,10 @@ module Stretchy
   module Filters
     class OrFilter < Base
 
-      contract filters: {type: Base, array: true}
+      attribute :filters, Array[Base]
+      validations do
+        rule :filters, type: {classes: Base, array: true}
+      end
 
       def initialize(*args)
         @filters = args.flatten
