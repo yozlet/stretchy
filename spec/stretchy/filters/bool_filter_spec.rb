@@ -61,8 +61,8 @@ describe Stretchy::Filters::BoolFilter do
   end
 
   it 'raises error unless params are filters' do
-    expect{subject.new(must: ['wat'], must_not: ['nope'], should: ['wtf'])}.to raise_error(Stretchy::Errors::ContractError)
-    expect{subject.new(must: 'wat', must_not: 123)}.to raise_error(Stretchy::Errors::ContractError)
+    expect{subject.new(must: ['wat'], must_not: ['nope'], should: ['wtf'])}.to raise_error
+    expect{subject.new(must: 'wat', must_not: 123)}.to raise_error
   end
 
   it 'must param is optional' do

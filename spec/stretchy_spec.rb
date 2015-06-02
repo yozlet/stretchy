@@ -107,7 +107,6 @@ describe Stretchy do
                 .boost.match.not(boost_match_not_field: 'boost_match_not_string')
       
       result = clause.request
-      pp [:request, result]
       # puts JSON.pretty_generate clause.to_search
       expect(clause.results).to be_a(Array)
 
@@ -232,16 +231,16 @@ describe Stretchy do
                 bool: {
                   must: [
                     {
-                      terms: {
-                        boost_terms: [2150]
-                      }
-                    },
-                    {
                       range: {
                         boost_range_term: {
                           gte: 47,
                           lte: 59
                         }
+                      }
+                    },
+                    {
+                      terms: {
+                        boost_terms: [2150]
                       }
                     }
                   ],

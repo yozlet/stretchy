@@ -4,9 +4,12 @@ module Stretchy
   module Filters
     class NotFilter < Base
 
-      attr_reader :filters
+      attribute :filters, Array[Base]
 
-      contract :filters, { type: Base, array: true, required: true }
+      validations do
+        rule :filters, type: { classes: Base, array: true }
+        rule :filters, :not_empty
+      end
 
       def initialize(*filters)
         @filters = Array(filters).flatten

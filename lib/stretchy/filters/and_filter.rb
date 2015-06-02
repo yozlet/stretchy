@@ -4,7 +4,11 @@ module Stretchy
   module Filters
     class AndFilter < Base
 
-      contract filters: {type: Stretchy::Filters::Base, array: true}
+      attribute :filters
+      validations do
+        rule :filters, :not_empty
+        rule :filters, type: {classes: Filters::Base, array: true}
+      end
 
       def initialize(*args)
         @filters = args.flatten

@@ -5,15 +5,19 @@ module Stretchy
   module Utils
     class Logger
 
-      include Stretchy::Utils::Contract
+      include Validation
 
       LEVELS = [:silence, :debug, :info, :warn, :error, :fatal]
 
-      attr_accessor :base, :level, :color
+      attribute :base,  Symbol
+      attribute :level, Symbol
+      attribute :color, String
 
-      contract base: { responds_to: LEVELS.last },
-              level: { in: LEVELS },
-              color: { in: Colorize::COLORS }
+      validations do
+        rule :base,   responds_to:  {method: LEVELS.last}
+        rule :level,  inclusion:    {in: LEVELS}
+        rule :color,  inclusion:    {in: Colorize::COLORS.keys}
+      end
 
       def self.log(msg_or_obj)
         self.new.log(msg_or_obj)
@@ -25,6 +29,7 @@ module Stretchy
         @color = color      || :blue
 
         @color = @color.to_s if @color.is_a?(Symbol)
+
         validate!
       end
 

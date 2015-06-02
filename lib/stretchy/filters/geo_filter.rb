@@ -5,9 +5,15 @@ module Stretchy
   module Filters
     class GeoFilter < Base
 
-      contract distance: {type: :distance, required: true},
-              geo_point: {type: Stretchy::Types::GeoPoint, required: true},
-                  field: {type: :field, required: true}
+      attribute :field
+      attribute :distance
+      attribute :geo_point
+
+      validations do
+        rule :field,      :field
+        rule :geo_point,   type: {classes: Types::GeoPoint}
+        rule :distance,   :distance
+      end
 
       def initialize(field, distance, geo_point)
         @field      = field

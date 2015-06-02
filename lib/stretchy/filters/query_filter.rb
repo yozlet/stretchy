@@ -5,7 +5,11 @@ module Stretchy
   module Filters
     class QueryFilter < Base
 
-      contract :query, type: Stretchy::Queries::Base
+      attribute :query, Queries::Base
+
+      validations do
+        rule :query, type: {classes: Queries::Base}
+      end
 
       def initialize(query)
         @query = query

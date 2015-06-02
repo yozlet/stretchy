@@ -43,8 +43,8 @@ module Stretchy
         else
           @base = Builders::ShellBuilder.new(base)
         end
-        @base.index = options[:index] if options[:index]
-        @base.type  = options[:type]  if options[:type]
+        @base.index ||= options[:index] || Stretchy.index_name
+        @base.type    = options[:type]  if options[:type]
       end
 
       # 

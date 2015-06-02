@@ -5,14 +5,19 @@ module Stretchy
   module Queries
     class FilteredQuery < Base
 
-      contract query: {type: Base},
-              filter: {type: Stretchy::Filters::Base}
+      attribute :query,  Base
+      attribute :filter, Filters::Base
+
+      validations do
+        rule :query, type: {classes: Base}
+        rule :filter, type: {classes: Filters::Base}
+      end
 
       def initialize(options = {})
         @query  = options[:query]
         @filter = options[:filter]
+        require_one! :query, :filter
         validate!
-        require_one(query: @query, filter: @filter)
       end
 
       def to_search

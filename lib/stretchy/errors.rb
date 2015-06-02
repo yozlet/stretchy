@@ -1,1 +1,1 @@
-require 'stretchy/errors/contract_error.rb'
+require 'stretchy/errors/validation_error.rb'

@@ -4,7 +4,11 @@ module Stretchy
   module Filters
     class ExistsFilter < Base
 
-      contract field: {type: :field, required: true}
+      attribute :field
+
+      validations do
+        rule :field, :field
+      end
 
       # CAUTION: this will match empty strings
       # see http://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-exists-filter.html
