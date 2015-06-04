@@ -3,7 +3,11 @@ module Validation
     class Type
 
       def initialize(params = {})
-        @params = params
+        if params.is_a?(Hash)
+          @params = params
+        else
+          @params = { classes: params }
+        end
       end
 
       def error_key

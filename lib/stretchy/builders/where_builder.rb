@@ -8,9 +8,9 @@ module Stretchy
 
       def initialize(options = {})
         @must         = FilterBuilder.new
-        @must_not     = FilterBuilder.new(inverse: true)
-        @should       = FilterBuilder.new(should:  true)
-        @should_not   = FilterBuilder.new(inverse: true, should: true)
+        @must_not     = FilterBuilder.new
+        @should       = FilterBuilder.new
+        @should_not   = FilterBuilder.new
       end
 
       def any?

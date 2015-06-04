@@ -9,10 +9,9 @@ describe Stretchy::Queries::MatchQuery do
     subject.new(*args).to_search[:match]
   end
 
-  it 'defaults to match any field using AND operator' do
-    result = get_result(string)
+  it 'defaults to match any field' do
+    result = get_result(string: string)
     expect(result['_all'][:query]).to eq(string)
-    expect(result['_all'][:operator]).to eq('and')
   end
 
   it 'allows matching a specific field' do
@@ -21,8 +20,8 @@ describe Stretchy::Queries::MatchQuery do
   end
 
   it 'allows specifying a different operator' do
-    result = get_result(string: string, operator: 'or')
-    expect(result['_all'][:operator]).to eq('or')
+    result = get_result(string: string, operator: 'and')
+    expect(result['_all'][:operator]).to eq('and')
   end
 
   it 'validates elastic operators' do

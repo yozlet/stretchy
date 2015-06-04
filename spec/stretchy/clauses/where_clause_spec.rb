@@ -14,35 +14,23 @@ describe Stretchy::Clauses::WhereClause do
 
     specify 'params' do
       expect_any_instance_of(match_builder).to receive(:add_matches).with(
-        :field_one, 'one',
-        inverse: false,
-        should:  false,
-        or:      true
+        :field_one, 'one', {}
       )
 
       expect_any_instance_of(match_builder).to receive(:add_matches).with(
-        :symbol_field, :my_symbol,
-        inverse: false,
-        should:  false,
-        or:      true
+        :symbol_field, :my_symbol, {}
       )
 
       expect_any_instance_of(where_builder).to receive(:add_param).with(
-        :nil_field, nil,
-        inverse: false,
-        should:  false
+        :nil_field, nil, {}
       )
 
       expect_any_instance_of(where_builder).to receive(:add_param).with(
-        :range_field, 27..34,
-        inverse: false,
-        should:  false
+        :range_field, 27..34, {}
       )
 
       expect_any_instance_of(where_builder).to receive(:add_param).with(
-        :number_field, 86,
-        inverse: false,
-        should:  false
+        :number_field, 86, {}
       )
       
       described_class.new(base,
@@ -61,8 +49,7 @@ describe Stretchy::Clauses::WhereClause do
     specify 'tmp with inverse option' do
       expect_any_instance_of(where_builder).to receive(:add_param).with(
         :field_one, 1,
-        inverse: true,
-        should:  false
+        inverse: true
       )
       instance = described_class.tmp(field_one: 1, inverse: true)
       expect(instance.inverse?).to eq(true)
@@ -78,9 +65,7 @@ describe Stretchy::Clauses::WhereClause do
         :geo_field, '27km', 
         distance: '27km',
         lat: 34.3,
-        lng: 28.2,
-        inverse: false,
-        should: false
+        lng: 28.2
       )
       subject.geo(:geo_field, distance: '27km', lat: 34.3, lng: 28.2)
     end
@@ -88,9 +73,7 @@ describe Stretchy::Clauses::WhereClause do
     specify 'range with min' do
       expect_any_instance_of(where_builder).to receive(:add_range).with(
         :range_field,
-        min:     88,
-        inverse: false,
-        should:  false
+        min:     88
       )
       subject.range(:range_field, min: 88)
     end
@@ -98,9 +81,7 @@ describe Stretchy::Clauses::WhereClause do
     specify 'range with max' do
       expect_any_instance_of(where_builder).to receive(:add_range).with(
         :range_field,
-        max:     99,
-        inverse: false,
-        should:  false
+        max:     99
       )
       subject.range(:range_field, max: 99)
     end
@@ -108,8 +89,7 @@ describe Stretchy::Clauses::WhereClause do
     specify 'inverse options' do
       expect_any_instance_of(where_builder).to receive(:add_param).with(
         :number_field, 27,
-        inverse: true,
-        should:  false
+        inverse: true
       )
       subject.not(number_field: 27)
     end
@@ -117,7 +97,6 @@ describe Stretchy::Clauses::WhereClause do
     specify 'should options' do
       expect_any_instance_of(where_builder).to receive(:add_param).with(
         :number_field, 27,
-        inverse: false,
         should:  true
       )
       subject.should(number_field: 27)
@@ -141,14 +120,11 @@ describe Stretchy::Clauses::WhereClause do
 
       expect_any_instance_of(where_builder).to receive(:add_param).with(
         :should_field, 33,
-        inverse: false,
         should:  true
       )
 
       expect_any_instance_of(where_builder).to receive(:add_param).with(
-        :where_field, 42,
-        inverse: false,
-        should:  false
+        :where_field, 42, {}
       )
       subject.should.not(not_field: 27).should(should_field: 33).where(where_field: 42)
     end
@@ -156,13 +132,11 @@ describe Stretchy::Clauses::WhereClause do
     specify 'where not / should options' do
       expect_any_instance_of(where_builder).to receive(:add_param).with(
         :not_field, 27,
-        inverse: true,
-        should:  false
+        inverse: true
       )
 
       expect_any_instance_of(where_builder).to receive(:add_param).with(
         :should_field, 33,
-        inverse: false,
         should:  true
       )
 
@@ -174,8 +148,7 @@ describe Stretchy::Clauses::WhereClause do
 
       expect_any_instance_of(where_builder).to receive(:add_param).with(
         :other_not, 42,
-        inverse: true,
-        should:  false
+        inverse: true
       )
 
       expect_any_instance_of(where_builder).to receive(:add_param).with(

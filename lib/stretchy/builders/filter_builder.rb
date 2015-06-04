@@ -4,13 +4,11 @@ module Stretchy
 
       attr_reader :terms, :ranges, :geos, :exists, :inverse, :should
 
-      def initialize(options = {})
+      def initialize
         @terms    = Hash.new { [] }
         @ranges   = Hash.new { [] }
         @geos     = Hash.new { [] }
         @exists   = []
-        @inverse  = !!options[:inverse]
-        @should   = !!options[:should]
       end
 
       def any?

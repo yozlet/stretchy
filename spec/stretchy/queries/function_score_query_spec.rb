@@ -3,7 +3,7 @@ require 'spec_helper'
 describe Stretchy::Queries::FunctionScoreQuery do
   subject { Stretchy::Queries::FunctionScoreQuery }
 
-  let(:query)  { Stretchy::Queries::MatchQuery.new('Rez') }
+  let(:query)  { Stretchy::Queries::MatchQuery.new(string: 'Rez') }
   let(:filter) { Stretchy::Filters::TermsFilter.new('name', 'Masahiro Sakurai') }
 
   let(:filter_boost) do

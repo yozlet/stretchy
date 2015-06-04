@@ -38,6 +38,8 @@ module Stretchy
       # @overload initialize(base, opts_or_string)
       #   @param [Base] Base clause to copy data from
       #   @param [Hash] A hash of fields and values to perform full-text matches with
+      #   @option opts_or_string [String] :operator ('and') Allows switching from the default 'and' 
+      #      operator to 'or', for all the specified fields
       # 
       # @example A basic full-text match
       #   query.match("anywhere in document")
@@ -48,14 +50,56 @@ module Stretchy
       #     other_field: "match in other_field"
       #   )
       # 
+      # @example A full-text search using the 'or' operator
+      #   query.match(
+      #     my_field: 'match any of these',
+      #     other_field: 'other words',
+      #     operator: 'or'
+      #   )
+      # 
       # @see http://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-match-query.html Elastic Docs - Match Query
-      def initialize(base, opts_or_str = {}, options = {})
+      def initialize(base, opts_or_str = {})
         super(base)
-        if opts_or_str.is_a?(Hash)
-          add_params(options.merge(opts_or_str))
-        else
-          add_params(options.merge('_all' => opts_or_str))
-        end
+        add_params(opts_or_str)
+      end
+
+      # 
+      # Specifies that values for this field should be
+      # matched with a proximity boost, rather than as
+      # a generic match query.
+      # 
+      # This means searching for "quick brown fox" will
+      # return matches in the following order:
+      # 
+      # * "the quick brown fox jumped over"
+      # * "the brown quick fox jumped over"
+      # * "the fox, brown & quick jumped over"
+      # * "the quick fox jumped over"
+      # * "the quick green and purple sparkly fox jumped over"
+      # * "the quick dog jumped over"
+      # * "the adoreable puppy jumped over" **not returned**
+      # 
+      # @overload phrase(opts_or_str)
+      #   @param opts_or_str = {} [String] A phrase that will 
+      #     be matched anywhere in the document
+      # 
+      # @overload phrase(opts_or_str)
+      #   @param opts_or_str = {} [Hash] A hash of fields and phrases
+      #     that should be matched in those fields
+      # 
+      # @example Matching multiple words together
+      #   query.match.phrase('hugs and love')
+      # 
+      # @example Not matching a phrase
+      #   query.match.not.phrase(comment: 'offensive words to hide')
+      # 
+      # @return [self] Allows continuing the query chain
+      # 
+      # @see https://www.elastic.co/guide/en/elasticsearch/guide/current/proximity-relevance.html Elasticsearch guide: proximity for relevance
+      def fulltext(opts_or_str = {})
+        add_params(opts_or_str, min: 1)
+        add_params(opts_or_str, should: true, slop: 50)
+        self
       end
 
       # 
@@ -94,9 +138,6 @@ module Stretchy
       #   @param [String] A string that should be matched anywhere in the document
       # @overload should(opts_or_str)
       #   @param [Hash] A hash of fields and strings that should be matched in those fields
-      # 
-      # @param opts_or_str = {} [type] [description]
-      # @param options = {} [type] [description]
       # 
       # @return [MatchClause] query state with should filters added
       # 
@@ -151,19 +192,21 @@ module Stretchy
 
       private
 
-        def add_params(params = {})
+        def add_params(params = {}, options = {})
           case params
           when Hash
             params.each do |field, params|
-              add_param(field, params)
+              add_param(field, params, options)
             end
           else
-            add_param('_all', params)
+            add_param('_all', params, options)
           end
         end
 
-        def add_param(field, param)
-          base.match_builder.add_matches(field, param, inverse: inverse?, should: should?)
+        def add_param(field, param, options = {})
+          options[:inverse] = true if inverse?
+          options[:should]  = true if should?
+          base.match_builder.add_matches(field, param, options)
         end
 
     end

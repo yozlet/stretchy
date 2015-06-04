@@ -19,26 +19,20 @@ describe Stretchy::Clauses::MatchClause do
 
     specify 'string' do
       expect_any_instance_of(match_builder).to receive(:add_matches).with(
-        '_all', 'match string',
-        inverse: false,
-        should: false
+        '_all', 'match string', {}
       )
       described_class.new(base, 'match string')
     end
 
     specify 'options' do
       expect_any_instance_of(match_builder).to receive(:add_matches).with(
-        :field_one, 'one',
-        inverse: false,
-        should: false
+        :field_one, 'one', {}
       )
 
       expect_any_instance_of(match_builder).to receive(:add_matches).with(
-        :field_two, 'two',
-        inverse: false,
-        should: false
+        :field_two, 'two', {}
       )
-      instance = described_class.new(base, field_one: 'one', field_two: 'two')
+      described_class.new(base, field_one: 'one', field_two: 'two')
     end
   end
 
@@ -55,8 +49,7 @@ describe Stretchy::Clauses::MatchClause do
     match_string = 'not matching string'
     expect_any_instance_of(match_builder).to receive(:add_matches).with(
       '_all', match_string,
-      inverse: true,
-      should: false
+      inverse: true
     )
     instance = subject.not(match_string)
     expect(instance).to be_a(described_class)
@@ -67,8 +60,7 @@ describe Stretchy::Clauses::MatchClause do
     match_hash = {string_field: 'not matching string'}
     expect_any_instance_of(match_builder).to receive(:add_matches).with(
       :string_field, match_hash[:string_field],
-      inverse: true,
-      should: false
+      inverse: true
     )
     instance = subject.not(match_hash)
     expect(instance).to be_a(described_class)
@@ -78,29 +70,49 @@ describe Stretchy::Clauses::MatchClause do
   it 'chains not options' do
     expect_any_instance_of(match_builder).to receive(:add_matches).with(
       :field_one, 'one',
-      inverse: true,
-      should: false
+      inverse: true
     )
 
     expect_any_instance_of(match_builder).to receive(:add_matches).with(
-      '_all', 'match all',
-      inverse: false,
-      should: false
+      '_all', 'match all', {}
     )
     subject.not(field_one: 'one').match('match all')
+  end
+
+  it 'chains fulltext method' do
+    expect_any_instance_of(match_builder).to receive(:add_matches).with(
+      :field_one, 'one',
+      min: 1
+    )
+    expect_any_instance_of(match_builder).to receive(:add_matches).with(
+      :field_one, 'one',
+      should: true,
+      slop: 50
+    )
+    subject.fulltext(field_one: 'one')
+  end
+
+  it 'chains fulltext method with string' do
+    expect_any_instance_of(match_builder).to receive(:add_matches).with(
+      '_all', 'one',
+      min: 1
+    )
+    expect_any_instance_of(match_builder).to receive(:add_matches).with(
+      '_all', 'one',
+      should: true,
+      slop: 50
+    )
+    subject.fulltext('one')
   end
 
   it 'chains should options' do
     expect_any_instance_of(match_builder).to receive(:add_matches).with(
       :field_one, 'one',
-      inverse: false,
       should: true
     )
 
     expect_any_instance_of(match_builder).to receive(:add_matches).with(
-      '_all', 'match all',
-      inverse: false,
-      should: false
+      '_all', 'match all', {}
     )
     subject.should(field_one: 'one').match('match all')
   end
@@ -114,7 +126,6 @@ describe Stretchy::Clauses::MatchClause do
 
     expect_any_instance_of(match_builder).to receive(:add_matches).with(
       :field_two, 'two',
-      inverse: false,
       should: true
     )
     subject.should.not(field_one: 'one').should(field_two: 'two')
@@ -123,7 +134,6 @@ describe Stretchy::Clauses::MatchClause do
   it 'chains should and match options' do
     expect_any_instance_of(match_builder).to receive(:add_matches).with(
       :field_one, 'one',
-      inverse: false,
       should: true
     )
 
@@ -134,9 +144,7 @@ describe Stretchy::Clauses::MatchClause do
     )
 
     expect_any_instance_of(match_builder).to receive(:add_matches).with(
-      '_all', 'match all',
-      inverse: false,
-      should: false
+      '_all', 'match all', {}
     )
 
     subject.should(field_one: 'one').not(field_two: 'two').match('match all')
