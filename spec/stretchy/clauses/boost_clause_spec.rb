@@ -92,9 +92,7 @@ describe Stretchy::Clauses::BoostClause do
 
     specify 'near' do
       expect_any_instance_of(where_builder).to receive(:add_param).with(
-        :my_field, 3,
-        inverse: false,
-        should:  false
+        :my_field, 3, {}
       )
       instance = subject.near(field: :published, origin: Time.now, scale: '3d').where(my_field: 3)
       expect(instance.base.boost_builder.functions).to include(Stretchy::Boosts::FieldDecayBoost)
@@ -102,9 +100,7 @@ describe Stretchy::Clauses::BoostClause do
 
     specify 'random' do
       expect_any_instance_of(where_builder).to receive(:add_param).with(
-        :my_field, 3,
-        inverse: false,
-        should:  false
+        :my_field, 3, {}
       )
       instance = subject.random(100).where(my_field: 3)
       expect(instance.base.boost_builder.functions).to include(Stretchy::Boosts::RandomBoost)

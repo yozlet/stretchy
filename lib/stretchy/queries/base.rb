@@ -6,10 +6,6 @@ module Stretchy
 
       include Stretchy::Utils::Validation
 
-      def initialize
-        raise "Override this in subclass"
-      end
-
       def to_search
         raise "Override this in subclass"
       end

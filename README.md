@@ -33,6 +33,10 @@ Or install it yourself as:
 
 Stretchy is still in early development, so it does not yet support the full feature set of the [Elasticsearch API](http://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl.html). It does support fairly basic queries in an ActiveRecord-ish style.
 
+### Documentation
+
+See [the Stretchy docs on rubydocs](http://www.rubydoc.info/gems/stretchy) for fairly detailed documentation on the API. Specifically, you'll probably want the docs for [Stretchy Clauses](http://www.rubydoc.info/gems/stretchy/Stretchy/Clauses/Base), which make up the basis of the query builder.
+
 ### Configuration
 
 ```ruby
@@ -58,14 +62,24 @@ query = Stretchy.query(type: 'model_name')
 
 From here, you can chain the following query methods:
 
+### Fulltext
+
+```ruby
+query = query.fulltext('Generic user-input phrase')
+             .fulltext(author: 'John Romero')
+```
+
+Performs a query for the given string, either anywhere in the document or in specific fields. At least one of the terms must match, and the closer a document is to having the exact phrase, the higher its' score. See the Elasticsearch guide's [article on proximity scoring](https://www.elastic.co/guide/en/elasticsearch/guide/current/proximity-relevance.html) for more info on how this works.
+
 ### Match
 
 ```ruby
-query = query.match('welcome to my web site').match(title: 'welcome to my web site')
+query = query.match('welcome to my web site')
+             .match(title: 'welcome to my web site')
+             .match(image: 'loading construction flash', operator: 'or')
 ```
 
-Performs a full-text search for the given string. If given a hash, it will use a match query on the specified fields, otherwise it will default to `'_all'`.
-
+Performs a match query for the given string. If given a hash, it will use a match query on the specified fields, otherwise it will default to `'_all'`. By default, a match query searches for any of the analyzed terms in the document, and scores them using Lucene's [practical scoring formula](https://www.elastic.co/guide/en/elasticsearch/guide/current/practical-scoring-function.html), which combines TF/IDF, the vector space model, and a few other niceties.
 
 ### Where
 
@@ -86,6 +100,19 @@ Allows passing a hash of matchable options similar to ActiveRecord's `where` met
 #### Gotcha
 
 If you pass a string or symbol for a field, it will be converted to a [Match Query](http://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-match-query.html) for the specified field. Since Elastic analyzes terms by default, string or symbol terms will be looked for by an analyzed query.
+
+To query for _exact_ matches against strings or symbols with underscores and punctuation intact, use the `.where.terms` clause.
+
+### Terms
+
+```ruby
+query = query.where.terms(
+          email: 'happy.developer@company.com',
+          status: :awesome
+        )
+```
+
+Sometimes you store values with punctuation, underscores, or other characters Elasticsearch would normally split into separate terms. If you want to query all comments that match a specific email address, you need to make sure that Elasticsearch doesn't analyze the query terms you send it before running the query. This clause allows you to do that.
 
 ### Range
 

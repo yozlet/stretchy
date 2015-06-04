@@ -25,7 +25,7 @@ module Stretchy
         if use_bool?
           bool_query
         else
-          must.to_query.first
+          must.to_queries.first
         end
       end
 
@@ -49,8 +49,8 @@ module Stretchy
 
         def bool_query
           Stretchy::Queries::BoolQuery.new(
-            must:     must.to_query,
-            must_not: must_not.to_query,
+            must:     must.to_queries,
+            must_not: must_not.to_queries,
             should:   build_should
           )
         end
@@ -58,11 +58,11 @@ module Stretchy
         def build_should
           if should.count > 1 || should_not.any?
             Stretchy::Queries::BoolQuery.new(
-              must:     should.to_query,
-              must_not: should_not.to_query
+              must:     should.to_queries,
+              must_not: should_not.to_queries
             )
           else
-            should.to_query.first
+            should.to_queries.first
           end
         end
 

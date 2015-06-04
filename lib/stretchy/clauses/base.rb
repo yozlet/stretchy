@@ -18,9 +18,11 @@ module Stretchy
 
       attr_reader :base
 
-      delegate [:request, :response, :results, :ids, :hits, 
+      delegate [:request, :response, :results, :ids, :hits, :query,
                 :took, :shards, :total, :max_score, :total_pages] => :query_results
-      delegate [:range, :geo] => :where
+      delegate [:to_search] => :base
+      delegate [:range, :geo, :terms] => :where
+      delegate [:fulltext] => :match
 
       #
       # Generates a chainable query. The only required option for the
@@ -173,7 +175,6 @@ module Stretchy
       def match(options = {})
         MatchClause.new(base, options)
       end
-      alias :fulltext :match
 
       # 
       # Used for filtering results. Works similarly to

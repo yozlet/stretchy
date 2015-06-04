@@ -16,7 +16,8 @@ end
 MAPPING  = {
   game_dev: {
     properties: {
-      coords: { type: :geo_point }
+      coords: { type: :geo_point },
+      url_slug: { type: :string, index: :not_analyzed }
     }
   }
 }

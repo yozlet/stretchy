@@ -4,14 +4,8 @@ module Stretchy
 
       def self.included(base)
         base.send(:include, Virtus.model)
+        base.class_exec { include Constructor }
         base.extend(ClassMethods)
-      end
-
-      def initialize(attributes = nil)
-        self.class.attribute_set.set(self, attributes) if attributes
-        set_default_attributes
-        validate!
-        after_initialize if respond_to?(:after_initialize)
       end
 
       def validator
@@ -54,6 +48,17 @@ module Stretchy
 
       def errors
         validator.errors
+      end
+
+      module Constructor
+
+        def initialize(attributes = nil)
+          self.class.attribute_set.set(self, attributes) if attributes
+          set_default_attributes
+          validate!
+          after_initialize(attributes) if respond_to?(:after_initialize)
+        end
+
       end
 
       module ClassMethods

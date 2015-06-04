@@ -98,7 +98,9 @@ module Stretchy
       #     exclusive: true
       #   )
       def range(field, options = {})
-        base.where_builder.add_range(field, options.merge(inverse: inverse?, should: should?))
+        options[:inverse] = true if inverse?
+        options[:should]  = true if should?
+        base.where_builder.add_range(field, options)
         self
       end
 
@@ -125,10 +127,56 @@ module Stretchy
       #   )
       def geo(field, options = {})
         distance = options[:distance]
-        opts = options.merge(inverse: inverse?, should: should?)
-        base.where_builder.add_geo(field, distance, opts)
+        options[:inverse] = true if inverse?
+        options[:should]  = true if should?
+        base.where_builder.add_geo(field, distance, options)
         self
       end
+
+      # 
+      # Used for passing strings or symbols in a `.where`
+      # method, and using the un-analyzed Terms filter instead
+      # of an analyzed and parsed Match Query.
+      # 
+      # This would be useful if you have a set of specific
+      # strings a field could be in, such as:
+      # `role: ['admin_user', 'company_manager']`
+      # and you want to query for those exact strings without
+      # the usual downcase / punctuation removal analysis.
+      # 
+      # **CAUTION:** The keys indexed by elastic may be analyzed -
+      # downcased, punctuation removed, etc. Using a terms filter
+      # in this case _will not work_ . Hence the default of using
+      # a match query for strings and symbols instead.
+      # 
+      # @param options = {} [Hash] Options to be passed to the 
+      #   {WhereClause}
+      # 
+      # @return [WhereClause] query state with filters applied
+      # 
+      # @example Querying for exact terms
+      #   query.where.terms(
+      #     status_field: 'working_fine_today',
+      #     number: 27,
+      #     date: Date.today
+      #   )
+      # 
+      # @example Not matching exact terms
+      #   query.where.not.terms(
+      #     email: 'my.email@company.com'
+      #   )
+      # 
+      # @example Should match exact terms
+      #   query.should.terms(
+      #     hacker_alias: '!!ic3y.h0t~~!'
+      #   )
+      # 
+      # @see https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-terms-filter.html Elasticsearch Terms Filter
+      def terms(params = {})
+        add_params(params, exact: true)
+        self
+      end
+      alias :exact :terms
 
       # 
       # Switches current state to inverted. Options passed 
@@ -167,6 +215,9 @@ module Stretchy
       # 
       # Can be chained with {#not} to produce inverted should queries
       # 
+      # **CAUTION:** Documents that don't match at least one `should`
+      # clause will not be returned.
+      # 
       # @param options = {} [Hash] Options to filter on
       # 
       # @return [WhereClause] should query state with should filters applied
@@ -180,6 +231,8 @@ module Stretchy
       #   query.should.not(
       #     exists_field: nil
       #   ) 
+      # 
+      # @see https://www.elastic.co/guide/en/elasticsearch/reference/1.4/query-dsl-bool-query.html Elasticsearch Bool Query docs (bool filter just references this)
       def should(options = {})
         @inverse = false
         @should  = true
@@ -226,33 +279,29 @@ module Stretchy
 
       private
         
-        def add_params(options = {})
-          options.each do |field, param|
+        def add_params(params = {}, options = {})
+          params.each do |field, param|
             # if it is an array, process each param
             # separately - ensures string & symbols
             # always go into .match_builder
             
             if param.is_a?(Array)
-              param.each{|p| add_param(field, p) }
+              param.each{|p| add_param(field, p, options) }
             else
-              add_param(field, param)
+              add_param(field, param, options)
             end
           end
         end
 
-        def add_param(field, param)
-          case param
-          when String, Symbol
-            base.match_builder.add_matches(field, param, 
-              inverse:  inverse?,
-              should:   should?,
-              or: true
-            )
+        def add_param(field, param, options = {})
+          opts = {}
+          opts[:inverse] = true if inverse?
+          opts[:should]  = true if should?
+
+          if (param.is_a?(String) || param.is_a?(Symbol)) && !options[:exact]
+            base.match_builder.add_matches(field, param, opts)
           else
-            base.where_builder.add_param(field, param,
-              inverse:  inverse?,
-              should:   should?
-            )
+            base.where_builder.add_param(field, param, opts)
           end
         end
 

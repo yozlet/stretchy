@@ -21,23 +21,28 @@ module Stretchy
         [(total.to_f / limit).ceil, 1].max
       end
 
+      def body
+        return @body if @body
+        @body        = {query: base.to_search}
+        @body[:aggs] = base.aggregate_builder if base.aggregate_builder.any?
+        @body
+      end
+
       def request
         return @request if @request
-        @request        = {query: base.to_search}
-        @request[:aggs] = base.aggregate_builder if base.aggregate_builder.any?
+        @request = {
+          type: type, 
+          body: body,
+          from: offset,
+          size: limit
+        }
+        @request[:fields]  = fields   if fields
+        @request[:explain] = true     if base.explain
         @request
       end
 
       def response
-        params = {
-          type: type, 
-          body: request,
-          from: offset,
-          size: limit
-        }
-        params[:fields]  = fields   if fields
-        params[:explain] = true     if base.explain
-        @response ||= Stretchy.search(params)
+        @response ||= Stretchy.search(request)
       end
 
       def ids

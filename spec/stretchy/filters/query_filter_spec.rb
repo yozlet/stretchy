@@ -3,8 +3,8 @@ require 'spec_helper'
 describe Stretchy::Filters::QueryFilter do
 
   subject { Stretchy::Filters::QueryFilter }
-  let(:query) { Stretchy::Queries::MatchQuery.new('Masahiro Sakurai') }
-  let(:match_query) { Stretchy::Queries::MatchQuery.new('Smash Bros', field: 'games') }
+  let(:query) { Stretchy::Queries::MatchQuery.new(string: 'Masahiro Sakurai') }
+  let(:match_query) { Stretchy::Queries::MatchQuery.new(string: 'Smash Bros', field: 'games') }
 
   def get_result(*args)
     subject.new(*args).to_search[:query]

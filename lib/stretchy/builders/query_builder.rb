@@ -6,29 +6,29 @@ module Stretchy
 
       delegate [:any?, :count, :length] => :matches
 
-      attr_reader :matches, :operators
+      attr_reader :matches, :query_opts
 
       def initialize
         @matches    = Hash.new { [] }
-        @operators  = Hash.new { 'and' }
+        @query_opts = Hash.new { {} }
       end
 
-      def add_matches(field, new_matches, options)
-        @matches[field] += Array(new_matches).map(&:to_s).map(&:strip).reject(&:empty?)
-        if options[:operator]
-          @operators[field] = options[:operator]
-        elsif options[:or]
-          @operators[field] = 'or'
+      def add_matches(field, new_matches, options = {})
+        @matches[field] += Array(new_matches)
+        opts = {}
+        [:operator, :slop, :minimum_should_match, :type].each do |opt|
+          opts[opt] = options[opt] if options[opt]
         end
+        @query_opts[field] = opts
       end
 
-      def to_query
-        matches.map do |field, matches_for_field|
-          Queries::MatchQuery.new(
-            field:    field,
-            string:   matches_for_field.join(' '),
-            operator: operators[field]
+      def to_queries
+        matches.map do |field, phrases|
+          opts = query_opts[field].merge(
+            field: field,
+            string: phrases.flatten.join(' ')
           )
+          Queries::MatchQuery.new(opts)
         end
       end
 

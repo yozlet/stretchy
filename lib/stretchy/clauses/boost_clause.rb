@@ -86,7 +86,7 @@ module Stretchy
       # @option options [String] :scale When the field is this distance from origin, the boost will be multiplied by `:decay` . Default is 0.5, so when `:origin` is a geo point and `:scale` is '10mi', then this boost will be twice as much for a point at the origin as for one 10 miles away
       # @option options [String] :offset Anything within this distance of the origin is boosted as if it were at the origin
       # @option options [Symbol] :type (:gauss) What type of decay to use. One of `:linear`, `:exp`, or `:gauss` 
-      # @option options [Numeric] :decay (0.5) How much the boost falls off when it is `:scale` distance from `:origin`
+      # @option options [Numeric] :decay_amount (0.5) How much the boost falls off when it is `:scale` distance from `:origin`
       # @option options [Numeric] :weight (1.2) How strongly to weight this boost compared to others
       # 
       # @example Boost near a geo point
