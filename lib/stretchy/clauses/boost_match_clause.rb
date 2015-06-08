@@ -16,45 +16,35 @@ module Stretchy
       delegate [:range, :geo] => :where
 
       # 
-      # Adds a match query to the boost functions.
-      # 
-      # @overload initialize(base, opts_or_string)
-      #   @param base [Base] Base query to copy data from
-      #   @param opts_or_string [String] String to do a free-text match across the document
-      # 
-      # @overload initialize(base, opts_or_string)
-      #   @param base [Base] Base query to copy data from
-      #   @param options = {} [Hash] Fields and values to match via full-text search
-      # 
-      # @return [BoostMatchClause] Boost clause in match context, with queries applied
-      def initialize(base, opts_or_string = {}, options = {})
-        super(base)
-        if opts_or_string.is_a?(Hash)
-          match_function(opts_or_string.merge(options))
-        else
-          match_function(options.merge('_all' => opts_or_string))
-        end
-      end
-
-      # 
       # Switches to inverse context, and applies filters as inverse
       # options (ie, documents that *do not* match the query will
       # be boosted)
       # 
-      # @overload not(opts_or_string)
+      # @overload not(params)
       #   @param [String] String that must not match anywhere in the document
       # 
-      # @overload not(opts_or_string)
-      #   @param opts_or_string [Hash] Fields and values that should not match in the document
+      # @overload not(params)
+      #   @param params [Hash] Fields and values that should not match in the document
       # 
       # @return [BoostMatchClause] Query with inverse matching boost function applied
-      def not(opts_or_string = {})
+      def not(params = {})
         @inverse = true
-        if opts_or_string.is_a?(Hash)
-          match_function(opts_or_string)
-        else
-          match_function('_all' => opts_or_string)
-        end
+        match_function(hashify_params(params))
+        self
+      end
+
+      def boost_match(params = {}, options = {})
+        match_function(hashify_params(params), options)
+        self
+      end
+
+      def fulltext(params = {}, options = {})
+        weight = params.delete(:weight) || options[:weight]
+        options[:min] = 1
+        options[:slop] = MatchClause::FULLTEXT_SLOP
+        clause = MatchClause.new.match(params, options)
+        boost  = clause.to_boost(weight)
+        base.boost_builder.add_boost(boost) if boost
         self
       end
 
@@ -72,7 +62,7 @@ module Stretchy
       # 
       # @return [WhereClause] Query with where clause applied
       def where(*args)
-        WhereClause.new(base, *args)
+        WhereClause.new(base).where(*args)
       end
 
       # 
@@ -89,16 +79,16 @@ module Stretchy
       # 
       # @return [MatchClause] Base context with match queries applied
       def match(*args)
-        MatchClause.new(base, *args)
+        MatchClause.new(base).match(*args)
       end
 
       private
 
-        def match_function(options = {})
-          weight = options.delete(:weight)
-          clause = MatchClause.tmp(options)
+        def match_function(params = {}, options = {})
+          weight = params.delete(:weight) || options[:weight]
+          clause = MatchClause.new.match(params, options)
           boost  = clause.to_boost(weight)
-          base.boost_builder.functions << boost if boost
+          base.boost_builder.add_boost(boost) if boost
         end
 
     end

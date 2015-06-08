@@ -31,10 +31,6 @@ describe Stretchy::Clauses::BoostClause do
       expect(subject.boost_mode('avg').base.boost_builder.boost_mode).to eq('avg')
     end
 
-    specify 'not' do
-      expect(subject.not.inverse?).to eq(true)
-    end
-
     specify 'where' do
       expect(subject.where).to be_a(Stretchy::Clauses::BoostWhereClause)
     end

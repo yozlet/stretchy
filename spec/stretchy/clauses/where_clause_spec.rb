@@ -11,49 +11,6 @@ describe Stretchy::Clauses::WhereClause do
       expect(instance.inverse?).to eq(false)
       expect(instance.should?).to eq(false)
     end
-
-    specify 'params' do
-      expect_any_instance_of(match_builder).to receive(:add_matches).with(
-        :field_one, 'one', {}
-      )
-
-      expect_any_instance_of(match_builder).to receive(:add_matches).with(
-        :symbol_field, :my_symbol, {}
-      )
-
-      expect_any_instance_of(where_builder).to receive(:add_param).with(
-        :nil_field, nil, {}
-      )
-
-      expect_any_instance_of(where_builder).to receive(:add_param).with(
-        :range_field, 27..34, {}
-      )
-
-      expect_any_instance_of(where_builder).to receive(:add_param).with(
-        :number_field, 86, {}
-      )
-      
-      described_class.new(base,
-        field_one: 'one',
-        nil_field: nil,
-        range_field: 27..34,
-        number_field: 86,
-        symbol_field: :my_symbol
-      )
-    end
-
-    specify 'tmp' do
-      expect(described_class.tmp).to be_a(described_class)
-    end
-
-    specify 'tmp with inverse option' do
-      expect_any_instance_of(where_builder).to receive(:add_param).with(
-        :field_one, 1,
-        inverse: true
-      )
-      instance = described_class.tmp(field_one: 1, inverse: true)
-      expect(instance.inverse?).to eq(true)
-    end
   end
 
   describe 'can add a' do
@@ -126,6 +83,7 @@ describe Stretchy::Clauses::WhereClause do
       expect_any_instance_of(where_builder).to receive(:add_param).with(
         :where_field, 42, {}
       )
+
       subject.should.not(not_field: 27).should(should_field: 33).where(where_field: 42)
     end
 
@@ -162,7 +120,7 @@ describe Stretchy::Clauses::WhereClause do
   end
 
   it 'converts to boost' do
-    instance = described_class.new(base,
+    instance = described_class.new(base).where(
       number_field: 27,
       string_field: 'hello',
       nil_field: nil,

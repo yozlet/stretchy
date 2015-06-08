@@ -24,29 +24,14 @@ module Stretchy
     class WhereClause < Base
 
       # 
-      # Creates a temporary context by initializing a new Base object.
-      # Used primarily in {BoostWhereClause}
-      # 
-      # @param options = {} [Hash] Options to filter on
-      # 
-      # @return [WhereClause] A clause outside the main query context
-      def self.tmp(options = {})
-        if options.delete(:inverse)
-          self.new(Builders::ShellBuilder.new).not(options)
-        else
-          self.new(Builders::ShellBuilder.new, options)
-        end
-      end
-
-      # 
       # Options passed to the initializer will be interpreted as filters
       # to be added to the query. This is similar to ActiveRecord's `where`
       # method.
       # 
       # @param base [Base] Used to intialize the new state from the previous clause
-      # @param options = {} [Hash] filters to be applied to the new state
-      # @option  options [true, false] :inverted (nil) Whether the new state is inverted
-      # @option  options [true, false] :should (nil) Whether the new state is should
+      # @param params = {} [Hash] filters to be applied to the new state
+      # @option  params [true, false] :inverted (nil) Whether the new state is inverted
+      # @option  params [true, false] :should (nil) Whether the new state is should
       # 
       # @example Apply ActiveRecord-like filters
       #   query.where(
@@ -62,9 +47,11 @@ module Stretchy
       # 
       # @see http://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-range-filter.html Elastic Docs - Range Filter
       # 
-      def initialize(base = nil, options = {})
-        super(base)
-        add_params(options)
+      def where(params = {}, options = {})
+        @inverse = false
+        @should  = false
+        add_params(params, options)
+        self
       end
 
       # 
@@ -172,8 +159,9 @@ module Stretchy
       #   )
       # 
       # @see https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-terms-filter.html Elasticsearch Terms Filter
-      def terms(params = {})
-        add_params(params, exact: true)
+      def terms(params = {}, options = {})
+        options[:exact] = true
+        add_params(params, options)
         self
       end
       alias :exact :terms
@@ -185,7 +173,7 @@ module Stretchy
       # 
       # Can be chained with {#should} to produce inverted should queries
       # 
-      # @param options = {} [Hash] Options to filter on
+      # @param params = {} [Hash] params to filter on
       # 
       # @return [WhereClause] inverted query state with not filters applied.
       # 
@@ -199,11 +187,11 @@ module Stretchy
       # 
       # @example Inverted should filters
       #   query.should.not(
-      #     match_field: [:these, "options"]
+      #     match_field: [:these, "params"]
       #   )
-      def not(options = {})
+      def not(params = {}, options = {})
         @inverse = true
-        add_params(options)
+        add_params(params, options)
         self
       end
 
@@ -218,25 +206,25 @@ module Stretchy
       # **CAUTION:** Documents that don't match at least one `should`
       # clause will not be returned.
       # 
-      # @param options = {} [Hash] Options to filter on
+      # @param params = {} [Hash] params to filter on
       # 
       # @return [WhereClause] should query state with should filters applied
       # 
-      # @example Specifying should options
+      # @example Specifying should params
       #   query.should(
       #     field: [99, 27]
       #   )
       # 
-      # @example Inverted should options
+      # @example Inverted should params
       #   query.should.not(
       #     exists_field: nil
       #   ) 
       # 
       # @see https://www.elastic.co/guide/en/elasticsearch/reference/1.4/query-dsl-bool-query.html Elasticsearch Bool Query docs (bool filter just references this)
-      def should(options = {})
+      def should(params = {}, options = {})
         @inverse = false
         @should  = true
-        add_params(options)
+        add_params(params, options)
         self
       end
 

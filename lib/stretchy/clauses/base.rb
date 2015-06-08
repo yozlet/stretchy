@@ -21,32 +21,32 @@ module Stretchy
       delegate [:request, :response, :results, :ids, :hits, :query,
                 :took, :shards, :total, :max_score, :total_pages] => :query_results
       delegate [:to_search] => :base
-      delegate [:range, :geo, :terms] => :where
-      delegate [:fulltext] => :match
+      delegate [:where, :range, :geo, :terms, :not] => :build_where
+      delegate [:match, :fulltext] => :build_match
 
       #
       # Generates a chainable query. The only required option for the
       # first initialization is `:type` , which specifies what type
       # to query on your index.
       # 
-      # @overload initialize(base_or_opts, options)
+      # @overload initialize(base_or_opts, params)
       #   @param base [Base] another clause to copy attributes from
-      #   @param options [Hash] options to set on the new state
+      #   @param params [Hash] params to set on the new state
       # 
       # @overload initialize(base_or_opts)
       #   @option base_or_opts [String] :index        The Elastic index to query
       #   @option base_or_opts [String] :type         The Lucene type to query on
       #   @option base_or_opts [true, false] :inverse Whether we are in a `not` context
-      def initialize(base = nil, options = {})
+      def initialize(base = nil, params = {})
         if base.is_a?(Builders::ShellBuilder)
           @base = base
         elsif base.nil?
           @base = Builders::ShellBuilder.new
+          @base.index ||= params[:index] || Stretchy.index_name
+          @base.type    = params[:type]  if params[:type]
         else
           @base = Builders::ShellBuilder.new(base)
         end
-        @base.index ||= options[:index] || Stretchy.index_name
-        @base.type    = options[:type]  if options[:type]
       end
 
       # 
@@ -101,8 +101,8 @@ module Stretchy
       # @option per_page [Integer] :per_page (DEFAULT_LIMIT) Number of results per page
       # 
       # @return [self] Allows continuing the query chain
-      def page(num, options = {})
-        base.limit  = options[:limit] || options[:per_page] || get_limit
+      def page(num, params = {})
+        base.limit  = params[:limit] || params[:per_page] || get_limit
         base.offset = [(num - 1), 0].max.ceil * get_limit
         self
       end
@@ -160,36 +160,13 @@ module Stretchy
         !!base.explain
       end
 
-      # 
-      # Used for fulltext searching. Works similarly
-      # to {#where} .
-      # 
-      # @param options = {} [Hash] Options to be passed to 
-      #   the MatchClause
-      # 
-      # @return [MatchClause] query state with fulltext matches
-      # 
-      # @see MatchClause#initialize
-      # 
-      # @see http://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-match-query.html Elastic Docs - Match Query
-      def match(options = {})
-        MatchClause.new(base, options)
+      def not(params = {}, options = {})
+        if params.is_a?(String)
+          build_match.not(params, options)
+        else
+          build_where.not(params, options)
+        end
       end
-
-      # 
-      # Used for filtering results. Works similarly to
-      # ActiveRecord's `where` method.
-      # 
-      # @param options = {} [Hash] Options to be passed to
-      #   the {WhereClause}
-      # 
-      # @return [WhereClause] query state with filters
-      # 
-      # @see  WhereClause#initialize
-      def where(options = {})
-        WhereClause.new(base, options)
-      end
-      alias :filter :where
 
       # 
       # Used for boosting the relevance score of
@@ -211,39 +188,16 @@ module Stretchy
       end
 
       # 
-      # Inverts the current context - the next method
-      # called, such as {#where} or {#match} will generate
-      # a filter specifying the document **does not**
-      # match the specified filter.
-      # 
-      # @overload not(string)
-      #   @param [String] A string that must not be anywhere
-      #                   in the document
-      # 
-      # @overload not(opts_or_string)
-      #   @param [Hash] Options to be passed to an inverted {WhereClause}
-      # 
-      # @return [Base] A {WhereClause}, or a {MatchClause} if only a string 
-      #   is given (ie, doing a full-text search across the whole document)
-      def not(opts_or_string = {})
-        if opts_or_string.is_a?(Hash)
-          WhereClause.new(base).not(opts_or_string)
-        else
-          MatchClause.new(base).not(opts_or_string)
-        end
-      end
-
-      # 
       # Adds filters in the `should` context. Operates just like
       # {#where}, but these filters only serve to add to the 
       # relevance score of the returned documents, rather than
       # being required to match.
       # 
-      # @overload  should(opts_or_string)
+      # @overload  should(params)
       #   @param [String] A string to match via full-text search 
       #     anywhere in the document.
       # 
-      # @overload should(opts_or_string)
+      # @overload should(params)
       #   @param [Hash] Options to generate filters.
       # 
       # @return [WhereClause] current query state with should clauses applied
@@ -251,22 +205,22 @@ module Stretchy
       # @see http://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-bool-query.html Elastic Docs - Bool Query
       # 
       # @see http://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-bool-filter.html Elastic Docs - Bool Filter
-      def should(opts_or_string = {})
-        if opts_or_string.is_a?(Hash)
-          WhereClause.new(base).should(opts_or_string)
+      def should(params = {}, options = {})
+        if params.is_a?(Hash)
+          WhereClause.new(base).should(params, options)
         else
-          MatchClause.new(base).should(opts_or_string)
+          MatchClause.new(base).should(params, options)
         end
       end
 
       # 
       # Allows adding raw aggregation JSON to your
       # query
-      # @param opts = {} [Hash] JSON to aggregate on
+      # @param params = {} [Hash] JSON to aggregate on
       # 
       # @return [self] Allows continuing the query chain
-      def aggregations(opts = {})
-        base.aggregate_builder = base.aggregate_builder.merge(opts)
+      def aggregations(params = {})
+        base.aggregate_builder = base.aggregate_builder.merge(params)
         self
       end
       alias :aggs :aggregations
@@ -293,6 +247,20 @@ module Stretchy
       def query_results
         @query_results ||= Stretchy::Results::Base.new(base)
       end
+
+      protected
+
+        def build_match
+          MatchClause.new(base)
+        end
+
+        def build_where
+          WhereClause.new(base)
+        end
+
+        def hashify_params(params)
+          params.is_a?(String) ? { '_all' => params } : params
+        end
 
     end
   end

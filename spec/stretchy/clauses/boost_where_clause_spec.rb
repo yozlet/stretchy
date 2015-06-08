@@ -10,9 +10,11 @@ describe Stretchy::Clauses::BoostWhereClause do
       expect(instance).to be_a(Stretchy::Clauses::BoostClause)
       expect(instance).to be_a(Stretchy::Clauses::Base)
     end
+  end
 
+  describe 'can boost params' do
     specify 'params' do
-      instance = described_class.new(base, number_field: 27)
+      instance = described_class.new(base).boost_where(number_field: 27)
       expect(instance.base.boost_builder.functions).to include(Stretchy::Boosts::FilterBoost)
     end
   end

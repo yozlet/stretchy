@@ -11,56 +11,13 @@ module Stretchy
       # 
     class MatchClause < Base
 
-      # 
-      # Creates a temporary MatchClause outside the main
-      # query scope by using a new {Base}. Primarily
-      # used in {BoostClause} for boosting on full-text
-      # matches.
-      # 
-      # @param options = {} [Hash] Options to pass to the full-text match
-      # 
-      # @return [MatchClause] Temporary clause outside current state
-      def self.tmp(options = {})
-        if options.delete(:inverse)
-          self.new(Builders::ShellBuilder.new).not(options)
-        else
-          self.new(Builders::ShellBuilder.new, options)
-        end
-      end
+      FULLTEXT_SLOP = 50
+      FULLTEXT_MIN  = 1
 
-      # 
-      # Creates a new state with a match query applied.
-      # 
-      # @overload initialize(base, opts_or_string)
-      #   @param [Base] Base clause to copy data from
-      #   @param [String] Performs a full-text query for this string on all fields in the document.
-      # 
-      # @overload initialize(base, opts_or_string)
-      #   @param [Base] Base clause to copy data from
-      #   @param [Hash] A hash of fields and values to perform full-text matches with
-      #   @option opts_or_string [String] :operator ('and') Allows switching from the default 'and' 
-      #      operator to 'or', for all the specified fields
-      # 
-      # @example A basic full-text match
-      #   query.match("anywhere in document")
-      # 
-      # @example A full-text search on specific fields
-      #   query.match(
-      #     my_field: "match in my_field",
-      #     other_field: "match in other_field"
-      #   )
-      # 
-      # @example A full-text search using the 'or' operator
-      #   query.match(
-      #     my_field: 'match any of these',
-      #     other_field: 'other words',
-      #     operator: 'or'
-      #   )
-      # 
-      # @see http://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-match-query.html Elastic Docs - Match Query
-      def initialize(base, opts_or_str = {})
-        super(base)
-        add_params(opts_or_str)
+      def match(params = {}, options = {})
+        @inverse = false unless should?
+        add_params(hashify_params(params), options)
+        self
       end
 
       # 
@@ -79,12 +36,12 @@ module Stretchy
       # * "the quick dog jumped over"
       # * "the adoreable puppy jumped over" **not returned**
       # 
-      # @overload phrase(opts_or_str)
-      #   @param opts_or_str = {} [String] A phrase that will 
+      # @overload phrase(params)
+      #   @param params = {} [String] A phrase that will 
       #     be matched anywhere in the document
       # 
-      # @overload phrase(opts_or_str)
-      #   @param opts_or_str = {} [Hash] A hash of fields and phrases
+      # @overload phrase(params)
+      #   @param params = {} [Hash] A hash of fields and phrases
       #     that should be matched in those fields
       # 
       # @example Matching multiple words together
@@ -96,9 +53,9 @@ module Stretchy
       # @return [self] Allows continuing the query chain
       # 
       # @see https://www.elastic.co/guide/en/elasticsearch/guide/current/proximity-relevance.html Elasticsearch guide: proximity for relevance
-      def fulltext(opts_or_str = {})
-        add_params(opts_or_str, min: 1)
-        add_params(opts_or_str, should: true, slop: 50)
+      def fulltext(params = {})
+        add_params(params, min: FULLTEXT_MIN)
+        add_params(params, should: true, slop: FULLTEXT_SLOP)
         self
       end
 
@@ -106,9 +63,9 @@ module Stretchy
       # Switches to inverted context. Matches applied here work the same way as
       # {#initialize}, but returned documents must **not** match these filters.
       # 
-      # @overload not(opts_or_str)
+      # @overload not(params)
       #   @param [String] A string that must not be matched anywhere in the document
-      # @overload not(opts_or_str)
+      # @overload not(params)
       #   @param [Hash] A hash of fields and strings that must not be matched in those fields
       # 
       # @return [MatchClause] inverted query state with match filters applied
@@ -121,9 +78,9 @@ module Stretchy
       #     my_field: "not_match_1",
       #     other_field: "not_match_2"
       #   )
-      def not(opts_or_str = {})
+      def not(params = {}, options = {})
         @inverse = true
-        add_params(opts_or_str)
+        add_params(params, options)
         self
       end
 
@@ -134,9 +91,9 @@ module Stretchy
       # 
       # Can be chained with {#not}
       # 
-      # @overload should(opts_or_str)
+      # @overload should(params)
       #   @param [String] A string that should be matched anywhere in the document
-      # @overload should(opts_or_str)
+      # @overload should(params)
       #   @param [Hash] A hash of fields and strings that should be matched in those fields
       # 
       # @return [MatchClause] query state with should filters added
@@ -157,10 +114,10 @@ module Stretchy
       #   )
       # 
       # @see http://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-bool-query.html Elastic Docs - Bool Query
-      def should(opts_or_str = {})
+      def should(params = {}, options = {})
         @should  = true
         @inverse = false
-        add_params(opts_or_str)
+        add_params(params, options)
         self
       end
 
@@ -204,8 +161,8 @@ module Stretchy
         end
 
         def add_param(field, param, options = {})
-          options[:inverse] = true if inverse?
-          options[:should]  = true if should?
+          options[:inverse] = true if inverse? || options[:inverse]
+          options[:should]  = true if should?  || options[:should]
           base.match_builder.add_matches(field, param, options)
         end
 

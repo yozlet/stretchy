@@ -11,18 +11,12 @@ module Stretchy
       # 
     class BoostWhereClause < BoostClause
 
-      # 
-      # Generates a boost that matches a set of filters.
-      # 
-      # @param base [Base] Query to copy data from.
-      # @param options = {} [Hash] Fields and values to filter on.
-      # 
-      # @see {WhereClause#initialize}
-      # 
-      # @return [BoostWhereClause] Query with filter boosts applied
-      def initialize(base, options = {})
-        super(base)
-        where_function(:init, options) if options.any?
+      def boost_where(params = {}, options = {})
+        weight = params.delete(:weight) || options[:weight]
+        options[:inverse] = true if inverse?
+        clause = WhereClause.new.where(params, options)
+        boost  = clause.to_boost(weight)
+        base.boost_builder.add_boost(boost) if boost
         self
       end
 
@@ -40,7 +34,12 @@ module Stretchy
       # 
       # @return [WhereClause] Query with where clause applied
       def where(*args)
-        WhereClause.new(base, *args)
+        WhereClause.new(base).where(*args)
+      end
+
+      def not(params = {}, options = {})
+        @inverse = true
+        boost_where(params, options)
       end
 
       # 
@@ -57,7 +56,7 @@ module Stretchy
       # 
       # @return [MatchClause] Base context with match queries applied
       def match(*args)
-        MatchClause.new(base, *args)
+        MatchClause.new(base).match(*args)
       end
 
       # 
@@ -71,8 +70,14 @@ module Stretchy
       # @see http://www.elastic.co/guide/en/elasticsearch/guide/master/_ranges.html Elastic Guides - Ranges
       # 
       # @return [Base] Query in base context with range boost applied
-      def range(*args)
-        where_function(:range, *args)
+      def range(field, options = {})
+        weight = options[:weight]
+        options[:inverse] = true if inverse?
+        
+        clause = WhereClause.new.range(field, options)
+        boost  = clause.to_boost(weight)
+        base.boost_builder.add_boost(boost) if boost
+        
         Base.new(base)
       end
 
@@ -91,32 +96,15 @@ module Stretchy
       # @see http://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-geo-distance-filter.html Elastic Docs - Geo Distance Filter
       # 
       # @return [Base] Query in base context with geo filter boost applied
-      def geo(*args)
-        where_function(:geo, *args)
+      def geo(field, options = {})
+        weight = options[:weight]
+        options[:inverse] = true if inverse?
+        
+        clause = WhereClause.new.geo(field, options)
+        boost  = clause.to_boost(weight)
+        base.boost_builder.add_boost(boost) if boost
         Base.new(base)
       end
-
-      private
-
-        def add_params(params = {})
-          where_function(:init, params)
-        end
-
-        def where_function(method, *args)
-          options   = args.last.is_a?(Hash) ? args.pop : {}
-          weight    = options.delete(:weight)
-
-          clause    = nil
-          if method == :init
-            clause  = WhereClause.tmp(options.merge(inverse: inverse?))
-          else
-            args.push(options)
-            clause  = WhereClause.tmp(inverse: inverse?).send(method, *args)
-          end
-          boost     = clause.to_boost(weight)
-
-          base.boost_builder.functions << boost if boost
-        end
     end
   end
 end
