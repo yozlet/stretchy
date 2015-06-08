@@ -39,6 +39,41 @@ describe Stretchy::Clauses::BoostClause do
       expect(subject.match).to be_a(Stretchy::Clauses::BoostMatchClause)
     end
 
+    describe 'field' do
+      specify 'single field' do
+        clause = subject.field(:salary)
+        fn = clause.base.boost_builder.functions.first
+
+        expect(fn).to be_a(Stretchy::Boosts::FieldValueBoost)
+        expect(fn.field).to eq(:salary)
+        expect(fn.modifier).to be_nil
+        expect(fn.factor).to be_nil
+      end
+
+      specify 'multiple fields' do
+        clause = subject.field(:salary, :number_two, :number_three)
+        expect(clause.base.boost_builder.functions.count).to eq(3)
+      end
+
+      specify 'field with factor and modifier' do
+        clause = subject.field(:salary, factor: 2, modifier: :log2p)
+        fn = clause.base.boost_builder.functions.first
+        expect(fn.factor).to eq(2)
+        expect(fn.modifier).to eq(:log2p)
+      end
+
+      specify 'multiple fields with factor and modifier' do
+        clause = subject.field(:salary, :number_two, :number_three, factor: 2, modifier: :log2p)
+        fn = clause.base.boost_builder.functions.first
+        expect(fn.factor).to eq(2)
+        expect(fn.modifier).to eq(:log2p)
+      end
+
+      specify 'only with valid modifier' do
+        expect{subject.field(:salary, modifier: :wat?)}.to raise_error
+      end
+    end
+
     describe 'near' do
 
       specify 'geo point' do

@@ -50,6 +50,38 @@ module Stretchy
       end
       alias :filter :where
 
+
+      # 
+      # Adds a boost based on the value in the specified field.
+      # You can pass more than one field as arguments, and
+      # you can also pass the `factor` and `modifier` options
+      # as an options hash.
+      #
+      # **CAUTION:** All documents in the index _must_ have
+      # a numeric value for any fields specified here, or
+      # the query will fail.
+      #
+      # @example Adding two fields with options
+      #   query = query.boost.field(:numeric_field, :other_field, factor: 7, modifier: :log2p)
+      # 
+      # @param *args [Arguments] Fields to add to the document score
+      # @param options = {} [Hash] Options to pass to the field_value_factor boost
+      # 
+      # @return [self] Query state with field boosts applied
+      #
+      # @see https://www.elastic.co/guide/en/elasticsearch/guide/current/boosting-by-popularity.html Elasticsearch guide on boosting by popularity
+      #
+      # @see https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-function-score-query.html#_field_value_factor Elasticsearch field value factor reference
+      # 
+      def field(*args)
+        options = args.last.is_a?(Hash) ? args.pop : {}
+        args.each do |field|
+          pp 
+          base.boost_builder.add_boost(Boosts::FieldValueBoost.new(field, options))
+        end
+        self
+      end
+
       def not(*args)
         raise Errors::InvalidQueryError.new("Cannot call .not directly after boost - use .where.not or .match.not instead")
       end
