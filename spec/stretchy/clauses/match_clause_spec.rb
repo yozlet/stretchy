@@ -6,33 +6,11 @@ describe Stretchy::Clauses::MatchClause do
   let(:match_builder) { Stretchy::Builders::MatchBuilder }
   subject { described_class.new(base) }
 
-  it 'creates a temporary instance' do
-    expect(described_class.tmp).to be_a(described_class)
-  end
-
   context 'initializes with' do
     specify 'nil' do
       instance = described_class.new(base)
       expect(instance.inverse?).to eq(false)
       expect(instance.should?).to eq(false)
-    end
-
-    specify 'string' do
-      expect_any_instance_of(match_builder).to receive(:add_matches).with(
-        '_all', 'match string', {}
-      )
-      described_class.new(base, 'match string')
-    end
-
-    specify 'options' do
-      expect_any_instance_of(match_builder).to receive(:add_matches).with(
-        :field_one, 'one', {}
-      )
-
-      expect_any_instance_of(match_builder).to receive(:add_matches).with(
-        :field_two, 'two', {}
-      )
-      described_class.new(base, field_one: 'one', field_two: 'two')
     end
   end
 
@@ -112,7 +90,7 @@ describe Stretchy::Clauses::MatchClause do
     )
 
     expect_any_instance_of(match_builder).to receive(:add_matches).with(
-      '_all', 'match all', {}
+      '_all', 'match all', {should: true}
     )
     subject.should(field_one: 'one').match('match all')
   end
@@ -144,7 +122,7 @@ describe Stretchy::Clauses::MatchClause do
     )
 
     expect_any_instance_of(match_builder).to receive(:add_matches).with(
-      '_all', 'match all', {}
+      '_all', 'match all', {inverse: true, should: true}
     )
 
     subject.should(field_one: 'one').not(field_two: 'two').match('match all')

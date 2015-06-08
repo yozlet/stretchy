@@ -23,31 +23,17 @@ module Stretchy
       delegate [:geo, :range] => :where
 
       # 
-      # Switch to the boost state, specifying that
-      # the next where / range / etc will be a boost
-      # instead of a regular filter / range / etc.
-      # 
-      # @param base [Base] a clause to copy query state from
-      # @param options = {} [Hash] Options for the boost clause
-      # @option options [true, false] :inverse (nil) If this boost should also be in the inverse state
-      # 
-      def initialize(base)
-        super(base)
-      end
-
-      # 
       # Changes query state to "match" in the context
       # of boosting. Options here work the same way as
       # {MatchClause#initialize}, but the combined query
       # will be applied as a boost function.
       # 
-      # @param options = {} [Hash] options for full text matching
+      # @param params = {} [Hash] params for full text matching
       # 
       # @return [BoostMatchClause] query with boost match state
-      def match(options = {})
-        BoostMatchClause.new(base, options)
+      def match(params = {}, options = {})
+        BoostMatchClause.new(base).boost_match(params, options)
       end
-      alias :fulltext :match
 
       # 
       # Changes query state to "where" in the context
@@ -55,14 +41,50 @@ module Stretchy
       # but applies the generated filters as a boost
       # function. 
       # 
-      # @param options = {} [Hash] Filters to use in this boost.
+      # @param params = {} [Hash] Filters to use in this boost.
       # 
       # @return [BoostWhereClause] Query state with boost filters applied
       # 
-      def where(options = {})
-        BoostWhereClause.new(base, options)
+      def where(params = {}, options = {})
+        BoostWhereClause.new(base).boost_where(params, options)
       end
       alias :filter :where
+
+
+      # 
+      # Adds a boost based on the value in the specified field.
+      # You can pass more than one field as arguments, and
+      # you can also pass the `factor` and `modifier` options
+      # as an options hash.
+      #
+      # **CAUTION:** All documents in the index _must_ have
+      # a numeric value for any fields specified here, or
+      # the query will fail.
+      #
+      # @example Adding two fields with options
+      #   query = query.boost.field(:numeric_field, :other_field, factor: 7, modifier: :log2p)
+      # 
+      # @param *args [Arguments] Fields to add to the document score
+      # @param options = {} [Hash] Options to pass to the field_value_factor boost
+      # 
+      # @return [self] Query state with field boosts applied
+      #
+      # @see https://www.elastic.co/guide/en/elasticsearch/guide/current/boosting-by-popularity.html Elasticsearch guide on boosting by popularity
+      #
+      # @see https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-function-score-query.html#_field_value_factor Elasticsearch field value factor reference
+      # 
+      def field(*args)
+        options = args.last.is_a?(Hash) ? args.pop : {}
+        args.each do |field|
+          pp 
+          base.boost_builder.add_boost(Boosts::FieldValueBoost.new(field, options))
+        end
+        self
+      end
+
+      def not(*args)
+        raise Errors::InvalidQueryError.new("Cannot call .not directly after boost - use .where.not or .match.not instead")
+      end
 
       # 
       # Adds a {Boosts::FieldDecayBoost}, which boosts
@@ -76,18 +98,18 @@ module Stretchy
       # * `:origin` or `:lat` & `:lng` combo
       # * `:scale`
       # 
-      # @option options [Numeric] :field What field to check with this boost
-      # @option options [Date, Time, Numeric, Types::GeoPoint] :origin Boost score based on how close the field is to this value. Required unless {Types::GeoPoint} is present (:lat, :lng, etc)
-      # @option options [Numeric] :lat Latitude, for a geo point
-      # @option options [Numeric] :latitude Latitude, for a geo point
-      # @option options [Numeric] :lng Longitude, for a geo point
-      # @option options [Numeric] :lon Longitude, for a geo point
-      # @option options [Numeric] :longitude Longitude, for a geo point
-      # @option options [String] :scale When the field is this distance from origin, the boost will be multiplied by `:decay` . Default is 0.5, so when `:origin` is a geo point and `:scale` is '10mi', then this boost will be twice as much for a point at the origin as for one 10 miles away
-      # @option options [String] :offset Anything within this distance of the origin is boosted as if it were at the origin
-      # @option options [Symbol] :type (:gauss) What type of decay to use. One of `:linear`, `:exp`, or `:gauss` 
-      # @option options [Numeric] :decay_amount (0.5) How much the boost falls off when it is `:scale` distance from `:origin`
-      # @option options [Numeric] :weight (1.2) How strongly to weight this boost compared to others
+      # @option params [Numeric] :field What field to check with this boost
+      # @option params [Date, Time, Numeric, Types::GeoPoint] :origin Boost score based on how close the field is to this value. Required unless {Types::GeoPoint} is present (:lat, :lng, etc)
+      # @option params [Numeric] :lat Latitude, for a geo point
+      # @option params [Numeric] :latitude Latitude, for a geo point
+      # @option params [Numeric] :lng Longitude, for a geo point
+      # @option params [Numeric] :lon Longitude, for a geo point
+      # @option params [Numeric] :longitude Longitude, for a geo point
+      # @option params [String] :scale When the field is this distance from origin, the boost will be multiplied by `:decay` . Default is 0.5, so when `:origin` is a geo point and `:scale` is '10mi', then this boost will be twice as much for a point at the origin as for one 10 miles away
+      # @option params [String] :offset Anything within this distance of the origin is boosted as if it were at the origin
+      # @option params [Symbol] :type (:gauss) What type of decay to use. One of `:linear`, `:exp`, or `:gauss` 
+      # @option params [Numeric] :decay_amount (0.5) How much the boost falls off when it is `:scale` distance from `:origin`
+      # @option params [Numeric] :weight (1.2) How strongly to weight this boost compared to others
       # 
       # @example Boost near a geo point
       #   query.boost.near(
@@ -105,7 +127,7 @@ module Stretchy
       #     scale: '3d'
       #   )
       # 
-      # @example Boost near a number (with options)
+      # @example Boost near a number (with params)
       #   query.boost.near(
       #     field: :followers,
       #     origin: 100,
@@ -119,13 +141,13 @@ module Stretchy
       # @return [Base] Query with field decay filter added
       # 
       # @see http://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-function-score-query.html Elastic Docs - Function Score Query
-      def near(options = {})
-        if options[:lat] || options[:latitude]  ||
-           options[:lng] || options[:longitude] || options[:lon]
+      def near(params = {}, options = {})
+        if params[:lat] || params[:latitude]  ||
+           params[:lng] || params[:longitude] || params[:lon]
 
-          options[:origin] = Stretchy::Types::GeoPoint.new(options)
+          params[:origin] = Stretchy::Types::GeoPoint.new(params)
         end
-        base.boost_builder.functions << Stretchy::Boosts::FieldDecayBoost.new(options)
+        base.boost_builder.add_boost Stretchy::Boosts::FieldDecayBoost.new(params)
         Base.new(base)
       end
       alias :geo :near
@@ -188,17 +210,6 @@ module Stretchy
       # @return [self] Boost context with boost mode applied
       def boost_mode(mode)
         base.boost_builder.boost_mode = mode
-        self
-      end
-
-      # 
-      # Switches to inverse context - boosts added with {#where} 
-      # and #{match} will be applied to documents which *do not*
-      # match said filters.
-      # 
-      # @return [BoostClause] Boost clause in inverse context
-      def not(options = {})
-        @inverse = true
         self
       end
 

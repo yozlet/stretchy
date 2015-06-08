@@ -38,7 +38,6 @@ module Stretchy
         else
           geo_point = Types::GeoPoint.new(options)
         end
-        
         builder_from_options(options).add_geo(field, distance, geo_point)
       end
 

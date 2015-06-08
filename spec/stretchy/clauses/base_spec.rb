@@ -20,25 +20,25 @@ describe Stretchy::Clauses::Base do
 
   it 'delegates not() to MatchClause with string arguments' do
     not_string = 'not match string'
-    expect_any_instance_of(Stretchy::Clauses::MatchClause).to receive(:not).with(not_string)
+    expect_any_instance_of(Stretchy::Clauses::MatchClause).to receive(:not).with(not_string, {})
     subject.not(not_string)
   end
 
   it 'delegates not() to WhereClause with hash arguments' do
     not_hash = {field: 'string'}
-    expect_any_instance_of(Stretchy::Clauses::WhereClause).to receive(:not).with(not_hash)
+    expect_any_instance_of(Stretchy::Clauses::WhereClause).to receive(:not).with(not_hash, {})
     subject.not(not_hash)
   end
 
   it 'delegates should() to MatchClause with string arguments' do
     string = 'match string'
-    expect_any_instance_of(Stretchy::Clauses::MatchClause).to receive(:should).with(string)
+    expect_any_instance_of(Stretchy::Clauses::MatchClause).to receive(:should).with(string, {})
     subject.should(string)
   end
 
   it 'delegates should() to WhereClause with hash arguments' do
     hash = {field: 'field string'}
-    expect_any_instance_of(Stretchy::Clauses::WhereClause).to receive(:should).with(hash)
+    expect_any_instance_of(Stretchy::Clauses::WhereClause).to receive(:should).with(hash, {})
     subject.should(hash)
   end
 

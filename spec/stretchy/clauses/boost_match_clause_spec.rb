@@ -13,17 +13,19 @@ describe Stretchy::Clauses::BoostMatchClause do
       expect(instance).to be_a(Stretchy::Clauses::BoostClause)
       expect(instance).to be_a(Stretchy::Clauses::Base)
     end
+  end
 
+  describe 'can match with' do
     specify 'string' do
-      instance = described_class.new(base, 'match all string')
+      instance = described_class.new(base).boost_match('match all string')
       expect(instance.base.boost_builder.functions.count).to eq(1)
       boost = instance.base.boost_builder.functions.first
       expect(boost.filter).to be_a(filter_class)
       expect(boost.weight).to eq(default_weight)
     end
 
-    specify 'string and options' do
-      instance = described_class.new(base, 'match all string', string_field: 'string field matcher')
+    specify 'field and value parameters' do
+      instance = described_class.new(base).boost_match(string_field: 'string field matcher')
       expect(instance.base.boost_builder.functions.count).to eq(1)
       boost = instance.base.boost_builder.functions.first
       expect(boost).to be_a(boost_class)
@@ -32,7 +34,7 @@ describe Stretchy::Clauses::BoostMatchClause do
     end
 
     specify 'string and weight' do
-      instance = described_class.new(base, 'match all string', weight: 12)
+      instance = described_class.new(base).boost_match('match all string', weight: 12)
       expect(instance.base.boost_builder.functions.count).to eq(1)
       boost = instance.base.boost_builder.functions.first
       expect(boost.filter).to be_a(filter_class)
@@ -40,14 +42,15 @@ describe Stretchy::Clauses::BoostMatchClause do
     end
 
     specify 'string, weight, and fields' do
-      instance = described_class.new(base, 'match all string', 
-        weight: 12, 
-        string_field: 'match string field'
+      instance = described_class.new(base).boost_match('match all string', 
+        weight: 12,
+        type: :phrase
       )
       expect(instance.base.boost_builder.functions.count).to eq(1)
       boost = instance.base.boost_builder.functions.first
       expect(boost.filter).to be_a(filter_class)
       expect(boost.weight).to eq(12)
+      expect(boost.filter.query.type).to eq('phrase')
     end
   end
 

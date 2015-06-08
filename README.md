@@ -178,6 +178,18 @@ The `:scale` param determines how quickly the value falls off. In the example ab
 
 See the [Function Score Query](http://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-function-score-query.html) section on Decay Functions for more info.
 
+### Field
+
+```ruby
+query = query.boost.field(:popularity)
+             .boost.field(:timestamp, factor: 0.5, modifier: :sqrt)
+             .boost.field(:votes, :bookmarks, :comments)
+```
+
+Boosts a document by a numeric value contained in the specified fields. You can also specify a `factor` (an amount to multiply the field value by) and a `modifier` (a function for normalizing values).
+
+See the [Boosting By Popularity Guide](https://www.elastic.co/guide/en/elasticsearch/guide/current/boosting-by-popularity.html) and the [Field Value Factor documentation](http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/query-dsl-function-score-query.html#_field_value_factor) for more info.
+
 ### Random
 
 ```ruby
