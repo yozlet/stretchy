@@ -30,12 +30,10 @@ module Stretchy
       def not(params = {})
         @inverse = true
         match_function(hashify_params(params))
-        self
       end
 
       def boost_match(params = {}, options = {})
         match_function(hashify_params(params), options)
-        self
       end
 
       def fulltext(params = {}, options = {})
@@ -45,7 +43,7 @@ module Stretchy
         clause = MatchClause.new.match(params, options)
         boost  = clause.to_boost(weight)
         base.boost_builder.add_boost(boost) if boost
-        self
+        Base.new(base)
       end
 
       # 
@@ -89,6 +87,7 @@ module Stretchy
           clause = MatchClause.new.match(params, options)
           boost  = clause.to_boost(weight)
           base.boost_builder.add_boost(boost) if boost
+          self
         end
 
     end

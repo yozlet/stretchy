@@ -50,6 +50,23 @@ module Stretchy
       end
 
       # 
+      # Exits any state the query is in (boost, inverse, should, etc)
+      # and returns to the root query state. You can use this before
+      # calling `.where` or other overridden methods to ensure they
+      # are being processed from the base state.
+      #
+      # If you have to call this method, please file an issue.
+      # End-of-chain methods (such as `.boost.where.not()`) should
+      # always return to the root state, and state is not
+      # something you should have to think about.
+      # 
+      # @return [Base] Continue the query chain from the root state
+      #
+      def root
+        Base.new(base)
+      end
+
+      # 
       # Sets how many results to return, similar to
       # ActiveRecord's limit method.
       # 
