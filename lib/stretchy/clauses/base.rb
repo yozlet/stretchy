@@ -22,7 +22,7 @@ module Stretchy
                 :took, :shards, :total, :max_score, :total_pages] => :query_results
       delegate [:to_search] => :base
       delegate [:where, :range, :geo, :terms, :not] => :build_where
-      delegate [:match, :fulltext] => :build_match
+      delegate [:match, :fulltext, :more_like] => :build_match
 
       #
       # Generates a chainable query. The only required option for the
@@ -160,7 +160,6 @@ module Stretchy
         !!base.explain
       end
 
-
       # 
       # Filter for documents that do not match the specified fields and values
       # 
@@ -180,10 +179,6 @@ module Stretchy
         else
           build_where.not(params, options)
         end
-      end
-
-      def more_like(params = {}, options = {})
-        
       end
 
       # 

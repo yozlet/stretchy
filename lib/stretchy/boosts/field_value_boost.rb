@@ -9,9 +9,9 @@ module Stretchy
       attribute :factor
 
       validations do
-        rule :field, :field
+        rule :field,    field: { required: true }
         rule :modifier, inclusion: {in: MODIFIERS}
-        rule :factor, type: {classes: Numeric}
+        rule :factor,   type: {classes: Numeric}
       end
 
       def initialize(field, options = {})

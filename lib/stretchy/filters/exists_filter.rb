@@ -7,7 +7,7 @@ module Stretchy
       attribute :field
 
       validations do
-        rule :field, :field
+        rule :field, field: { required: true }
       end
 
       # CAUTION: this will match empty strings

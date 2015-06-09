@@ -8,7 +8,7 @@ module Stretchy
       attribute :terms
 
       validations do
-        rule :field, :field
+        rule :field, field: { required: true }
         rule :terms, type: {classes: [Numeric, Time, String, Symbol], array: true}
         rule :terms, :not_empty
       end

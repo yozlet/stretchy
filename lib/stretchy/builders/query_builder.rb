@@ -4,13 +4,18 @@ module Stretchy
 
       extend Forwardable
 
-      delegate [:any?, :count, :length] => :matches
+      delegate [:any?, :count, :length] => :to_enum
 
-      attr_reader :matches, :query_opts
+      attr_reader :queries, :matches, :query_opts
 
       def initialize
+        @queries    = []
         @matches    = Hash.new { [] }
         @query_opts = Hash.new { {} }
+      end
+
+      def add_query(query)
+        @queries << query
       end
 
       def add_matches(field, new_matches, options = {})
@@ -22,8 +27,12 @@ module Stretchy
         @query_opts[field] = opts
       end
 
+      def to_enum
+        queries + matches.values
+      end
+
       def to_queries
-        matches.map do |field, phrases|
+        queries + matches.map do |field, phrases|
           opts = query_opts[field].merge(
             field: field,
             string: phrases.flatten.join(' ')

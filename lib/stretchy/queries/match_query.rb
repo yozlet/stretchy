@@ -16,7 +16,7 @@ module Stretchy
       attribute :max,       Float
 
       validations do
-        rule :field,    :field
+        rule :field,     field: { required: true }
         rule :string,    type: String
         rule :string,   :required
         rule :operator,  inclusion: {in: OPERATORS}

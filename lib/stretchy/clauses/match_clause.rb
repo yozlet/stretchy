@@ -60,6 +60,51 @@ module Stretchy
       end
 
       # 
+      # Adds a MoreLikeThis query to the chain. Pass in document ids, 
+      # an array of index/name/ids, or a string to get documents that
+      # have similar terms.
+      #
+      # This method accepts all the options in the Elasticsearch
+      # `more_like_this` query, which are pretty extensive. See the
+      # documentation (link below) to get an idea of what is available.
+      #
+      # Only one of `:docs`, `:ids`, or `:like_text` is required, and
+      # one of those three must be present.
+      #
+      # @param params = {} [Hash] Params used to build the `more_like_this` query
+      #   @option params [Array] :like_text A string to compare documents do
+      #   @option params [Array] :ids A list of document ids to compare documents to
+      #   @option params [Array] :docs An array of document hashes. You can pass the
+      #     results of another query here, or a hash with fields '_index', '_type'
+      #     and '_id'
+      #   @option params [Array] :fields A list of fields to use in the comparison.
+      #     Defaults to '_all'
+      #   @option params [Array] :include Whether the source documents should be
+      #     included in the result set. Defaults to `false`
+      # 
+      # @return [MatchClause] allows continuing the query chain
+      # 
+      # @example Getting more like a document by id
+      #   query.more_like(ids: other_result_id)
+      #
+      # @example Getting more like a document from another query
+      #   query.more_like(docs: other_query.results)
+      #
+      # @example Getting more like a document from a string
+      #   query.more_like(like_text: 'puppies and kittens are great')
+      # 
+      # @see https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-mlt-query.html Elasticsearch more-like-this query documentation
+      #
+      def more_like(params = {}, options = {})
+        query = Queries::MoreLikeThisQuery.new(params)
+        options[:inverse] = true if inverse?
+        options[:should]  = true if should?
+
+        base.add_query(query, options)
+        self
+      end
+
+      # 
       # Switches to inverted context. Matches applied here work the same way as
       # {#initialize}, but returned documents must **not** match these filters.
       # 

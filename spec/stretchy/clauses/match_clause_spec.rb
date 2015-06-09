@@ -83,6 +83,19 @@ describe Stretchy::Clauses::MatchClause do
     subject.fulltext('one')
   end
 
+  it 'adds a MoreLikeThis query' do
+    expect_any_instance_of(match_builder).to receive(:add_query).with(Stretchy::Queries::MoreLikeThisQuery, {})
+    subject.more_like(fields: :my_field, like_text: 'one two three')
+  end
+
+  it 'passes options to more_like' do
+    expect_any_instance_of(match_builder).to receive(:add_query).with(
+      Stretchy::Queries::MoreLikeThisQuery,
+      inverse: true
+    )
+    subject.not.more_like(fields: :my_field, like_text: 'one two three')
+  end
+
   it 'chains should options' do
     expect_any_instance_of(match_builder).to receive(:add_matches).with(
       :field_one, 'one',

@@ -7,6 +7,7 @@ module Validation
       end
 
       def valid_value?(value)
+        return true if empty_ok?(value)
         if params[:array]
           value.all? {|v| valid_class?(v) && !is_empty?(v) }
         else

@@ -2,21 +2,22 @@ module Stretchy
   module Queries
     class MoreLikeThisQuery < Base
 
-      attribute :fields, Array[String]
-      attribute :like_text, String
-      attribute :ids, Array[Integer]
-      attribute :docs, Array
+      attribute :fields,          Array[String]
+      attribute :like_text,       String
+      attribute :ids,             Array[Integer]
+      attribute :docs,            Array
       attribute :max_query_terms, Integer
-      attribute :min_term_freq, Integer
-      attribute :max_doc_freq, Integer
+      attribute :min_term_freq,   Integer
+      attribute :min_doc_freq,    Integer
+      attribute :max_doc_freq,    Integer
       attribute :min_word_length, Integer
       attribute :max_word_length, Integer
-      attribute :stop_words, Array[String]
-      attribute :analyzer, String
+      attribute :stop_words,      Array[String]
+      attribute :analyzer,        String
+      attribute :boost_terms,     Integer
+      attribute :include,         Axiom::Types::Boolean
+      attribute :boost,           Float
       attribute :minimum_should_match
-      attribute :boost_terms, Integer
-      attribute :include, Axiom::Types::Boolean
-      attribute :boost, Float
 
       validations do
         rule :fields, field: { array: true }
