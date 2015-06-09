@@ -1,6 +1,6 @@
 module Validation
   module Rule
-    class Longitude
+    class Longitude < StretchyRule
 
       def error_key
         :longitude
@@ -12,11 +12,6 @@ module Validation
         valid = false unless value && value <= 180 && value >= -180
         valid
       end
-
-      def params
-        {}
-      end
-
     end
   end
 end

@@ -1,6 +1,6 @@
 module Validation
   module Rule
-    class Distance
+    class Distance < StretchyRule
       DISTANCE_FORMAT = /^(\d+)(km|mi)$/
 
       def error_key
@@ -10,11 +10,6 @@ module Validation
       def valid_value?(value)
         !!(value.to_s =~ DISTANCE_FORMAT)
       end
-
-      def params
-        {}
-      end
-
     end
   end
 end

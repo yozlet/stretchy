@@ -1,22 +1,22 @@
 module Validation
   module Rule
-    class Field
+    class Field < StretchyRule
 
       def error_key
         :field
       end
 
       def valid_value?(value)
-        valid = true
-        valid = false unless value.is_a?(String) || value.is_a?(Symbol) || value.is_a?(Numeric)
-        valid = false if value.to_s.empty?
-        valid
+        if params[:array]
+          value.all? {|v| valid_class?(v) && !is_empty?(v) }
+        else
+          valid_class?(value) && !is_empty?(value)
+        end
       end
 
-      def params
-        {}
+      def valid_class?(value)
+        [String, Symbol, Numeric].any?{|c| value.is_a?(c) }
       end
-
     end
   end
 end

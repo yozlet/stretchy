@@ -22,8 +22,8 @@ module Stretchy
 
       def to_search
         json = {}
-        json[:query]  = @query.to_search  if @query
-        json[:filter] = @filter.to_search if @filter
+        json[:query]  = @query.to_search  if query
+        json[:filter] = @filter.to_search if filter
         { filtered: json }
       end
     end

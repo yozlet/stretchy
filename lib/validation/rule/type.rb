@@ -1,12 +1,13 @@
 module Validation
   module Rule
-    class Type
+    class Type < StretchyRule
 
       def initialize(params = {})
         if params.is_a?(Hash)
           @params = params
+          @params[:classes] = Array(params[:classes])
         else
-          @params = { classes: params }
+          @params = { classes: Array(params) }
         end
       end
 
@@ -16,29 +17,15 @@ module Validation
 
       def valid_value?(value)
         return true if value.nil? && !params[:required]
-        
-        valid = true
         if params[:array]
-          valid = false unless value.all? {|v| validate_type(v) }
+          value.all? {|v| valid_type?(v) }
         else
-          valid = false unless validate_type(value)
+          valid_type?(value)
         end
-        valid
       end
 
-      def validate_type(value)
-        valid = true
-        case params[:classes]
-        when Array
-          valid = false unless params[:classes].any? {|type| value.is_a?(type) }
-        else
-          valid = false unless value.is_a?(params[:classes])
-        end
-        valid
-      end
-
-      def params
-        @params
+      def valid_type?(value)
+        params[:classes].any? {|type| value.is_a?(type) }
       end
     end
   end

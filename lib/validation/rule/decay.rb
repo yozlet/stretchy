@@ -1,6 +1,6 @@
 module Validation
   module Rule
-    class Decay
+    class Decay < StretchyRule
       DECAY_FUNCTIONS = [:gauss, :linear, :exp]
 
       def error_key
@@ -10,11 +10,6 @@ module Validation
       def valid_value?(value)
         DECAY_FUNCTIONS.any?{|f| f == value || f.to_s == value }
       end
-
-      def params
-        {}
-      end
-
     end
   end
 end

@@ -4,6 +4,8 @@ module Stretchy
   module Filters
     class Base
 
+      extend Forwardable
+
       include Utils::Validation
 
       def initialize

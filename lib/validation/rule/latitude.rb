@@ -1,6 +1,6 @@
 module Validation
   module Rule
-    class Latitude
+    class Latitude < StretchyRule
 
       def error_key
         :latitude
@@ -11,10 +11,6 @@ module Validation
         value = Float(value) rescue nil
         valid = false unless value && value.to_f <= 90 && value.to_f >= -90
         valid
-      end
-
-      def params
-        {}
       end
     end
   end

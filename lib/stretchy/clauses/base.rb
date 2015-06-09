@@ -160,12 +160,30 @@ module Stretchy
         !!base.explain
       end
 
+
+      # 
+      # Filter for documents that do not match the specified fields and values
+      # 
+      # @overload not(params)
+      #   @param [String] A string that must not be matched anywhere in the document
+      # @overload not(params)
+      #   @param [Hash] A hash of fields and strings or terms that must not be matched in those fields
+      # 
+      # @return [MatchClause, WhereClause] inverted query state with match filters applied
+      #
+      # @see {MatchClause#not}
+      # @see {WhereClause#not}
+      # 
       def not(params = {}, options = {})
         if params.is_a?(String)
           build_match.not(params, options)
         else
           build_where.not(params, options)
         end
+      end
+
+      def more_like(params = {}, options = {})
+        
       end
 
       # 

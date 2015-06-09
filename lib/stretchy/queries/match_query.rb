@@ -22,7 +22,7 @@ module Stretchy
         rule :operator,  inclusion: {in: OPERATORS}
         rule :type,      inclusion: {in: MATCH_TYPES}
         rule :slop,      type: Numeric
-        rule :min,       regular_expression: {regex: /\A(\d+)%?\Z/}
+        rule :min,      :min_should_match
         rule :max,       type: Numeric
       end
 
