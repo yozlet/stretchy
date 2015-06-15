@@ -54,7 +54,7 @@ module Stretchy
       # 
       # @see https://www.elastic.co/guide/en/elasticsearch/guide/current/proximity-relevance.html Elasticsearch guide: proximity for relevance
       def fulltext(params = {})
-        add_params(params, min: FULLTEXT_MIN)
+        add_params(params)
         add_params(params, should: true, slop: FULLTEXT_SLOP)
         self
       end

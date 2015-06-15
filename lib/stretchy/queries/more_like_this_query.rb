@@ -17,11 +17,9 @@ module Stretchy
       attribute :boost_terms,     Integer
       attribute :include,         Axiom::Types::Boolean
       attribute :boost,           Float
-      attribute :minimum_should_match
 
       validations do
         rule :fields, field: { array: true }
-        rule :minimum_should_match, min_should_match: true
       end
 
       def after_initialize(params = {})
