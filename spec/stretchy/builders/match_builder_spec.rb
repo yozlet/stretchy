@@ -2,6 +2,7 @@ require 'spec_helper'
 
 describe Stretchy::Builders::MatchBuilder do
 
+  let(:query) { Stretchy::Queries::MatchAllQuery.new }
   let(:result) { subject.to_query.to_search }
 
   it 'instantiates' do
@@ -38,6 +39,13 @@ describe Stretchy::Builders::MatchBuilder do
       subject.add_matches('fieldname', 'one', inverse: true, should: true)
       should_not = result[:should].first[:bool][:must_not].first
       expect(should_not[:match]['fieldname']).to eq(query: 'one')
+    end
+
+    it 'adds a query' do
+      subject.add_query(query)
+      subject.add_matches(:my_field, :field_value)
+      expect(result[:must].count).to eq(2)
+      expect(result[:must].first).to eq(query.to_search)
     end
 
     context 'with all options' do

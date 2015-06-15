@@ -59,8 +59,7 @@ describe Stretchy::Clauses::MatchClause do
 
   it 'chains fulltext method' do
     expect_any_instance_of(match_builder).to receive(:add_matches).with(
-      :field_one, 'one',
-      min: 1
+      :field_one, 'one', {}
     )
     expect_any_instance_of(match_builder).to receive(:add_matches).with(
       :field_one, 'one',
@@ -72,8 +71,7 @@ describe Stretchy::Clauses::MatchClause do
 
   it 'chains fulltext method with string' do
     expect_any_instance_of(match_builder).to receive(:add_matches).with(
-      '_all', 'one',
-      min: 1
+      '_all', 'one', {}
     )
     expect_any_instance_of(match_builder).to receive(:add_matches).with(
       '_all', 'one',
@@ -81,6 +79,19 @@ describe Stretchy::Clauses::MatchClause do
       slop: 50
     )
     subject.fulltext('one')
+  end
+
+  it 'adds a MoreLikeThis query' do
+    expect_any_instance_of(match_builder).to receive(:add_query).with(Stretchy::Queries::MoreLikeThisQuery, {})
+    subject.more_like(fields: :my_field, like_text: 'one two three')
+  end
+
+  it 'passes options to more_like' do
+    expect_any_instance_of(match_builder).to receive(:add_query).with(
+      Stretchy::Queries::MoreLikeThisQuery,
+      inverse: true
+    )
+    subject.not.more_like(fields: :my_field, like_text: 'one two three')
   end
 
   it 'chains should options' do

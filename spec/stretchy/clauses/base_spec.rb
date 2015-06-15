@@ -18,6 +18,10 @@ describe Stretchy::Clauses::Base do
     expect(subject.boost).to be_a(Stretchy::Clauses::BoostClause)
   end
 
+  it 'returns to root context' do
+    expect(subject.boost.root.class).to eq(described_class)
+  end
+
   it 'delegates not() to MatchClause with string arguments' do
     not_string = 'not match string'
     expect_any_instance_of(Stretchy::Clauses::MatchClause).to receive(:not).with(not_string, {})

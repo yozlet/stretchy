@@ -9,8 +9,8 @@ module Stretchy
       attribute :weight, Numeric, default: DEFAULT_WEIGHT
 
       validations do
-        rule :filter, type: {classes: Filters::Base}
-        rule :weight, type: {classes: Numeric}
+        rule :filter, type: Filters::Base
+        rule :weight, type: Numeric
       end
 
       def initialize(options = {})

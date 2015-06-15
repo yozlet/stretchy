@@ -2,6 +2,8 @@ require 'spec_helper'
 
 describe Stretchy::Builders::QueryBuilder do
 
+  let(:query) { Stretchy::Queries::MatchAllQuery.new }
+
   def result(instance)
     instance.to_queries.first.to_search[:match]
   end
@@ -35,6 +37,20 @@ describe Stretchy::Builders::QueryBuilder do
     last  = subject.to_queries.last.to_search
     expect(first[:match]['_all'][:query]).to eq('i love kittens')
     expect(last[:match]['another_field'][:query]).to eq('i love puppies')
+  end
+
+  it 'adds a query' do
+    subject.add_query(query)
+    expect(subject.any?).to eq(true)
+    expect(subject.count).to eq(1)
+    expect(subject.length).to eq(1)
+    expect(subject.to_queries.first).to be_a(query.class)
+  end
+
+  it 'munges queries and params' do
+    subject.add_query(query)
+    subject.add_matches(:another_field, 'i love puppies')
+    expect(subject.to_queries.count).to eq(2)
   end
 
 end

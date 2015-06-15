@@ -81,6 +81,16 @@ query = query.match('welcome to my web site')
 
 Performs a match query for the given string. If given a hash, it will use a match query on the specified fields, otherwise it will default to `'_all'`. By default, a match query searches for any of the analyzed terms in the document, and scores them using Lucene's [practical scoring formula](https://www.elastic.co/guide/en/elasticsearch/guide/current/practical-scoring-function.html), which combines TF/IDF, the vector space model, and a few other niceties.
 
+### More Like
+
+```ruby
+query = query.more_like(ids: [1, 2, 3])
+             .more_like(docs: other_search.results)
+             .more_like(like_text: 'puppies and kittens are great', fields: :about_me)
+```
+
+Finds documents similar to a list of input documents. You must pass in one of the `:ids`, `:docs` or `:like_text` parameters, but everything else is optional. This method accepts any of the params available in the [Elasticsearch more_like_this query](https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-mlt-query.html). It can also be chained with `.not` and `.should`.
+
 ### Where
 
 ```ruby

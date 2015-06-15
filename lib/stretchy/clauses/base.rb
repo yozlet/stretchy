@@ -22,7 +22,7 @@ module Stretchy
                 :took, :shards, :total, :max_score, :total_pages] => :query_results
       delegate [:to_search] => :base
       delegate [:where, :range, :geo, :terms, :not] => :build_where
-      delegate [:match, :fulltext] => :build_match
+      delegate [:match, :fulltext, :more_like] => :build_match
 
       #
       # Generates a chainable query. The only required option for the
@@ -47,6 +47,23 @@ module Stretchy
         else
           @base = Builders::ShellBuilder.new(base)
         end
+      end
+
+      # 
+      # Exits any state the query is in (boost, inverse, should, etc)
+      # and returns to the root query state. You can use this before
+      # calling `.where` or other overridden methods to ensure they
+      # are being processed from the base state.
+      #
+      # If you have to call this method, please file an issue.
+      # End-of-chain methods (such as `.boost.where.not()`) should
+      # always return to the root state, and state is not
+      # something you should have to think about.
+      # 
+      # @return [Base] Continue the query chain from the root state
+      #
+      def root
+        Base.new(base)
       end
 
       # 
@@ -160,6 +177,19 @@ module Stretchy
         !!base.explain
       end
 
+      # 
+      # Filter for documents that do not match the specified fields and values
+      # 
+      # @overload not(params)
+      #   @param [String] A string that must not be matched anywhere in the document
+      # @overload not(params)
+      #   @param [Hash] A hash of fields and strings or terms that must not be matched in those fields
+      # 
+      # @return [MatchClause, WhereClause] inverted query state with match filters applied
+      #
+      # @see {MatchClause#not}
+      # @see {WhereClause#not}
+      # 
       def not(params = {}, options = {})
         if params.is_a?(String)
           build_match.not(params, options)

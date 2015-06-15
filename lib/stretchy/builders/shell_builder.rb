@@ -2,6 +2,8 @@ module Stretchy
   module Builders
     class ShellBuilder
 
+      extend Forwardable
+
       DEFAULT_LIMIT   = 30
       DEFAULT_OFFSET  = 0
 
@@ -9,6 +11,9 @@ module Stretchy
                     :match_builder, :where_builder, :boost_builder, 
                     :aggregate_builder, :fields
 
+      delegate [:add_matches, :add_query] => :match_builder
+      delegate [:add_param, :add_geo, :add_range] => :where_builder
+      
       def initialize(options = {})
         @index              = options[:index] || Stretchy.index_name
         @match_builder      = Stretchy::Builders::MatchBuilder.new

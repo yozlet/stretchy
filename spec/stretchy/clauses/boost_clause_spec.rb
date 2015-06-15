@@ -120,6 +120,7 @@ describe Stretchy::Clauses::BoostClause do
   describe 'does not chain from' do
     let(:match_builder) { Stretchy::Builders::MatchBuilder }
     let(:where_builder) { Stretchy::Builders::WhereBuilder }
+    let(:boost_builder) { Stretchy::Builders::BoostBuilder }
 
     specify 'near' do
       expect_any_instance_of(where_builder).to receive(:add_param).with(
@@ -127,6 +128,13 @@ describe Stretchy::Clauses::BoostClause do
       )
       instance = subject.near(field: :published, origin: Time.now, scale: '3d').where(my_field: 3)
       expect(instance.base.boost_builder.functions).to include(Stretchy::Boosts::FieldDecayBoost)
+      expect(instance).to_not be_a(described_class)
+    end
+
+    specify 'field' do
+      expect_any_instance_of(boost_builder).to receive(:add_boost).with(Stretchy::Boosts::FieldValueBoost)
+      instance = subject.field(:my_field)
+      expect(instance).to_not be_a(described_class)
     end
 
     specify 'random' do
@@ -135,6 +143,7 @@ describe Stretchy::Clauses::BoostClause do
       )
       instance = subject.random(100).where(my_field: 3)
       expect(instance.base.boost_builder.functions).to include(Stretchy::Boosts::RandomBoost)
+      expect(instance).to_not be_a(described_class)
     end
   end
 end

@@ -9,7 +9,7 @@ module Stretchy
       attribute :range, Types::Range
 
       validations do
-        rule :field, :field
+        rule :field, field: { required: true }
         rule :range, type: {classes: Types::Range}
       end
 

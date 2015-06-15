@@ -15,6 +15,10 @@ module Stretchy
         must.any? || must_not.any? || should.any? || should_not.any?
       end
 
+      def add_query(query, options = {})
+        builder_from_options(options).add_query(query)
+      end
+
       def add_matches(field, matches, options = {})
         builder_from_options(options).add_matches(field, matches, options)
       end

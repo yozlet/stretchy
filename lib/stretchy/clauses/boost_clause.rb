@@ -76,10 +76,9 @@ module Stretchy
       def field(*args)
         options = args.last.is_a?(Hash) ? args.pop : {}
         args.each do |field|
-          pp 
           base.boost_builder.add_boost(Boosts::FieldValueBoost.new(field, options))
         end
-        self
+        Base.new(base)
       end
 
       def not(*args)

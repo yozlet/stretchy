@@ -50,6 +50,10 @@ module Stretchy
         validator.errors
       end
 
+      def json_attributes
+        self.attributes.reject{|key, val| val.nil? || (val.respond_to?(:empty?) && val.empty?) }
+      end
+
       module Constructor
 
         def initialize(attributes = nil)

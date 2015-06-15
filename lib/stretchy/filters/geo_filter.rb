@@ -10,7 +10,7 @@ module Stretchy
       attribute :geo_point
 
       validations do
-        rule :field,      :field
+        rule :field,       field: { required: true }
         rule :geo_point,   type: {classes: Types::GeoPoint}
         rule :distance,   :distance
       end

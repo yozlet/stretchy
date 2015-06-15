@@ -16,7 +16,7 @@ module Stretchy
       attribute :weight
 
       validations do
-        rule :field,        :field
+        rule :field,         field: { required: true }
         rule :origin,        type: {classes: [Numeric, Time, Date, Stretchy::Types::GeoPoint], required: true}
         rule :scale,        :required
         rule :decay,        :decay
