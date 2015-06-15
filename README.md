@@ -1,5 +1,4 @@
 # Stretchy
-[![Build Status](https://travis-ci.org/hired/stretchy.svg?branch=master)](https://travis-ci.org/hired/stretchy)
 
 Stretchy is a query builder for [Elasticsearch](https://www.elastic.co/products/elasticsearch). It helps you quickly construct the JSON to send to Elastic, which can get [rather complicated](http://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl.html). 
 
