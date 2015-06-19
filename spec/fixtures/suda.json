@@ -5,6 +5,7 @@
   "company" : "Suda51",
   "url_slug" : "suda-51",
   "salary" : 300000,
+  "is_sakurai" : false,
   "first_game" : "2005-06-09T23:15:43.511Z",
   "games" : [
     {

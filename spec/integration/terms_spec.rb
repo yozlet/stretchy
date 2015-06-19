@@ -24,4 +24,10 @@ describe 'terms' do
     expect(res.ids).to match_array([found['id']])
   end
 
+  it 'finds documents by boolean terms' do
+    res = subject.where(is_sakurai: true)
+    expect(res.ids).to include(found['id'])
+    expect(res.ids).to_not include(not_found['id'])
+  end
+
 end

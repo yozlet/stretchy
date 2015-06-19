@@ -5,6 +5,7 @@
   "company" : "Nintendo",
   "url_slug" : "masahiro-sakurai",
   "salary" : 900000,
+  "is_sakurai" : true,
   "first_game" : "1999-01-21T18:25:43.511Z",
   "games" : [
     {

@@ -22,6 +22,11 @@ describe Stretchy::Filters::TermsFilter do
     expect(result[field].first).to eq(values.first)
   end
 
+  it 'allows boolean filters' do
+    result = get_result(field, true)
+    expect(result[field].first).to eq(true)
+  end
+
   it 'raises error for invalid types' do
     expect{subject.new(field: '', values: 'wat')}.to raise_error
   end
