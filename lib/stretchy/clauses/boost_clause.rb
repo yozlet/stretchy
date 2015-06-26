@@ -21,6 +21,7 @@ module Stretchy
       extend Forwardable
 
       delegate [:geo, :range] => :where
+      delegate [:fulltext]    => :match
 
       # 
       # Changes query state to "match" in the context
@@ -32,7 +33,9 @@ module Stretchy
       # 
       # @return [BoostMatchClause] query with boost match state
       def match(params = {}, options = {})
-        BoostMatchClause.new(base).boost_match(params, options)
+        clause = BoostMatchClause.new(base)
+        clause = clause.boost_match(params, options) unless params.empty? && options.empty?
+        clause
       end
 
       # 

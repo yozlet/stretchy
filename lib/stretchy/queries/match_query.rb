@@ -12,7 +12,7 @@ module Stretchy
       attribute :operator,  String
       attribute :type,      String
       attribute :slop,      Integer
-      attribute :min,       String
+      attribute :min,       Integer
       attribute :max,       Float
 
       validations do
@@ -24,6 +24,10 @@ module Stretchy
         rule :slop,      type: Numeric
         rule :min,      :min_should_match
         rule :max,       type: Numeric
+      end
+
+      def after_initialize(params)
+        @min ||= params[:minimum_should_match]
       end
 
       def option_attributes

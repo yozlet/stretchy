@@ -59,8 +59,8 @@ module Stretchy
         def initialize(attributes = nil)
           self.class.attribute_set.set(self, attributes) if attributes
           set_default_attributes
-          validate!
           after_initialize(attributes) if respond_to?(:after_initialize)
+          validate!
         end
 
       end

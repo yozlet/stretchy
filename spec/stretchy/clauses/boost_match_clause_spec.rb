@@ -4,6 +4,8 @@ describe Stretchy::Clauses::BoostMatchClause do
   let(:base) { Stretchy::Builders::ShellBuilder.new }
   let(:default_weight) { Stretchy::Boosts::Base::DEFAULT_WEIGHT }
   let(:filter_class) { Stretchy::Filters::QueryFilter }
+  let(:query_class) { Stretchy::Queries::MatchQuery }
+  let(:match_clause) { Stretchy::Clauses::MatchClause }
   let(:boost_class) { Stretchy::Boosts::FilterBoost }
 
   describe 'initialize with' do
@@ -16,6 +18,7 @@ describe Stretchy::Clauses::BoostMatchClause do
   end
 
   describe 'can match with' do
+    
     specify 'string' do
       instance = described_class.new(base).boost_match('match all string')
       expect(instance.base.boost_builder.functions.count).to eq(1)
@@ -54,6 +57,20 @@ describe Stretchy::Clauses::BoostMatchClause do
     end
   end
 
+  describe 'can match fulltext' do
+    specify 'string, weight, and match options' do
+      instance = described_class.new(base).boost.fulltext('match all string')
+      expect(instance.base.boost_builder.functions.count).to eq(1)
+      boost = instance.base.boost_builder.functions.first
+      expect(boost.filter).to be_a(filter_class)
+      query = boost.filter.query
+      expect(query.type).to eq(query_class::MATCH_TYPES.first)
+      expect(query.min).to eq(match_clause::FULLTEXT_MIN)
+      expect(query.slop).to eq(match_clause::FULLTEXT_SLOP)
+      expect(boost.weight).to eq(Stretchy::Boosts::Base::DEFAULT_WEIGHT)
+    end
+  end
+
   describe 'can add options' do
     subject { described_class.new(base) }
 
@@ -62,12 +79,24 @@ describe Stretchy::Clauses::BoostMatchClause do
     end
   end
 
+  describe 'can change state without adding boosts' do
+    subject { described_class.new(base) }
+
+    specify 'to match' do
+      expect(subject.match.base.boost_builder.functions.count).to eq(0)
+    end
+
+    specify 'to where' do
+      expect(subject.where.base.boost_builder.functions.count).to eq(0)
+    end
+  end
+
   describe 'cannot chain' do
     subject { described_class.new(base).match('matchstr') }
 
     specify 'match' do
       instance = subject.match('filtermatch')
-      expect(instance).to be_a(Stretchy::Clauses::MatchClause)
+      expect(instance).to be_a(match_clause)
       expect(instance.base.match_builder.must.matches['_all']).to include('filtermatch')
     end
 
