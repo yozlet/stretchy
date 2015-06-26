@@ -21,7 +21,7 @@ module Stretchy
       def add_matches(field, new_matches, options = {})
         @matches[field] += Array(new_matches)
         opts = {}
-        [:operator, :slop, :minimum_should_match, :type].each do |opt|
+        [:operator, :slop, :minimum_should_match, :min, :type].each do |opt|
           opts[opt] = options[opt] if options[opt]
         end
         @query_opts[field] = opts

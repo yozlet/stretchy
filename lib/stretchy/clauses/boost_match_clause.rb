@@ -37,10 +37,12 @@ module Stretchy
       end
 
       def fulltext(params = {}, options = {})
-        weight = params.delete(:weight) || options[:weight]
-        options[:min] = 1
-        options[:slop] = MatchClause::FULLTEXT_SLOP
-        clause = MatchClause.new.match(params, options)
+        _params = hashify_params(params)
+        weight = _params.delete(:weight) || options[:weight]
+        options[:min]  ||= MatchClause::FULLTEXT_MIN
+        options[:slop] ||= MatchClause::FULLTEXT_SLOP
+        options[:type] ||= Queries::MatchQuery::MATCH_TYPES.first
+        clause = MatchClause.new.match(_params, options)
         boost  = clause.to_boost(weight)
         base.boost_builder.add_boost(boost) if boost
         Base.new(base)
@@ -83,7 +85,7 @@ module Stretchy
       private
 
         def match_function(params = {}, options = {})
-          weight = params.delete(:weight) || options[:weight]
+          weight = hashify_params(params).delete(:weight) || options[:weight]
           clause = MatchClause.new.match(params, options)
           boost  = clause.to_boost(weight)
           base.boost_builder.add_boost(boost) if boost
