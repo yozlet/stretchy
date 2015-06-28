@@ -1,6 +1,6 @@
 # Stretchy
 
-Stretchy is a query builder for [Elasticsearch](https://www.elastic.co/products/elasticsearch). It helps you quickly construct the JSON to send to Elastic, which can get [rather complicated](http://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl.html). 
+Stretchy is a query builder for [Elasticsearch](https://www.elastic.co/products/elasticsearch). It helps you quickly construct the JSON to send to Elastic, which can get [rather complicated](http://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl.html).
 
 Stretchy is modeled after ActiveRecord's interface and architecture - query objects are immutable and chainable, which makes quickly building the right query and caching the results easy.
 
@@ -49,7 +49,7 @@ Stretchy.configure do |c|
                                                   # Stretchy will also log, with the params
                                                   # specified below
   c.log_level  = :debug                           # default is :silence
-  c.log_color  = :green                           # default is :blue 
+  c.log_color  = :green                           # default is :blue
 end
 ```
 
@@ -136,7 +136,7 @@ Only documents with the specified field, and within the specified range match. Y
 ### Geo Distance
 
 ```ruby
-query = query.geo(field: 'coords', distance: '20mi', lat: 35.0117, lng: 135.7683)
+query = query.geo('coords', distance: '20mi', lat: 35.0117, lng: 135.7683)
 ```
 
 Filters for documents where the specified `geo_point` field is within the given range.
@@ -181,7 +181,7 @@ query = query.boost.near(field: :published_at, origin: Time.now, scale: '5d')
              .boost.near(field: :coords, lat: 35.0117, lng: 135.7683, scale: '10mi', decay: 0.33, weight: 1000)
 ```
 
-Boosts a document by how close a given field is to a given `:origin` . Accepts dates, times, numbers, and geographical points. Unlike `.where.range` or `.boost.geo`, `.boost.near` is not a binary operation. All documents get a score for that field, which decays the further it is away from the origin point. 
+Boosts a document by how close a given field is to a given `:origin` . Accepts dates, times, numbers, and geographical points. Unlike `.where.range` or `.boost.geo`, `.boost.near` is not a binary operation. All documents get a score for that field, which decays the further it is away from the origin point.
 
 The `:scale` param determines how quickly the value falls off. In the example above, if a document's `:coords` field is 10 miles away from the starting point, its score is about 1/3 that of a document at the origin point.
 
