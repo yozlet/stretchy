@@ -6,21 +6,23 @@ describe Stretchy::Clauses::BoostMatchClause do
   let(:filter_class) { Stretchy::Filters::QueryFilter }
   let(:query_class) { Stretchy::Queries::MatchQuery }
   let(:match_clause) { Stretchy::Clauses::MatchClause }
+  let(:where_clause) { Stretchy::Clauses::WhereClause }
   let(:boost_class) { Stretchy::Boosts::FilterBoost }
+
+  subject { described_class.new(base) }
 
   describe 'initialize with' do
     specify 'base' do
-      instance = described_class.new(base)
-      expect(instance).to be_a(described_class)
-      expect(instance).to be_a(Stretchy::Clauses::BoostClause)
-      expect(instance).to be_a(Stretchy::Clauses::Base)
+      expect(subject).to be_a(described_class)
+      expect(subject).to be_a(Stretchy::Clauses::BoostClause)
+      expect(subject).to be_a(Stretchy::Clauses::Base)
     end
   end
 
   describe 'can match with' do
-    
+
     specify 'string' do
-      instance = described_class.new(base).boost_match('match all string')
+      instance = subject.boost_match('match all string')
       expect(instance.base.boost_builder.functions.count).to eq(1)
       boost = instance.base.boost_builder.functions.first
       expect(boost.filter).to be_a(filter_class)
@@ -28,7 +30,7 @@ describe Stretchy::Clauses::BoostMatchClause do
     end
 
     specify 'field and value parameters' do
-      instance = described_class.new(base).boost_match(string_field: 'string field matcher')
+      instance = subject.boost_match(string_field: 'string field matcher')
       expect(instance.base.boost_builder.functions.count).to eq(1)
       boost = instance.base.boost_builder.functions.first
       expect(boost).to be_a(boost_class)
@@ -37,7 +39,7 @@ describe Stretchy::Clauses::BoostMatchClause do
     end
 
     specify 'string and weight' do
-      instance = described_class.new(base).boost_match('match all string', weight: 12)
+      instance = subject.boost_match('match all string', weight: 12)
       expect(instance.base.boost_builder.functions.count).to eq(1)
       boost = instance.base.boost_builder.functions.first
       expect(boost.filter).to be_a(filter_class)
@@ -45,7 +47,7 @@ describe Stretchy::Clauses::BoostMatchClause do
     end
 
     specify 'string, weight, and fields' do
-      instance = described_class.new(base).boost_match('match all string', 
+      instance = subject.boost_match('match all string',
         weight: 12,
         type: :phrase
       )
@@ -59,7 +61,7 @@ describe Stretchy::Clauses::BoostMatchClause do
 
   describe 'can match fulltext' do
     specify 'string, weight, and match options' do
-      instance = described_class.new(base).boost.fulltext('match all string')
+      instance = subject.boost.fulltext('match all string')
       expect(instance.base.boost_builder.functions.count).to eq(1)
       boost = instance.base.boost_builder.functions.first
       expect(boost.filter).to be_a(filter_class)
@@ -71,8 +73,16 @@ describe Stretchy::Clauses::BoostMatchClause do
     end
   end
 
+  it 'can match arbitrary query json' do
+    instance = subject.query(foo: {bar: :baz})
+    expect(instance.base.boost_builder.functions.count).to eq(1)
+    boost = instance.base.boost_builder.functions.first
+    expect(boost.filter).to be_a(filter_class)
+    query = boost.filter.query
+    expect(query).to be_a(Stretchy::Queries::ParamsQuery)
+  end
+
   describe 'can add options' do
-    subject { described_class.new(base) }
 
     specify 'not' do
       expect(subject.not.inverse?).to eq(true)
@@ -80,7 +90,6 @@ describe Stretchy::Clauses::BoostMatchClause do
   end
 
   describe 'can change state without adding boosts' do
-    subject { described_class.new(base) }
 
     specify 'to match' do
       expect(subject.match.base.boost_builder.functions.count).to eq(0)
