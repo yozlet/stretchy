@@ -21,8 +21,8 @@ module Stretchy
         (must.any? && must_not.any?) || should.any? || should_not.any?
       end
 
-      def add_params(params, options = {})
-        builder_from_options(options).add_params(params)
+      def add_filter(filter, options = {})
+        builder_from_options(options).add_filter(filter)
       end
 
       def add_param(field, param, options = {})

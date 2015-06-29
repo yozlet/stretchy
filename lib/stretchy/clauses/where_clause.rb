@@ -61,12 +61,14 @@ module Stretchy
       # This can be used to add filters that are not currently supported
       # by Stretchy to be used in the final query.
       #
-      # @param params = {} [Hash] filters to be applied to the new state
+      # @param params = {} [Hash] Filter to be applied to the new state
       # @option  options [true, false] :inverse (nil) Ignore query state and add to the `not` filters
       # @option  options [true, false] :should (nil) Ignore query state and add to the `should` filters
       def filter(params, options = {})
-        options = merge_state(options)
-        base.where_builder.add_params(params, options)
+        base.where_builder.add_filter(
+          Filters::ParamsFilter.new(params),
+          merge_state(options)
+        )
         self
       end
 
@@ -305,12 +307,6 @@ module Stretchy
           else
             base.where_builder.add_param(field, param, opts)
           end
-        end
-
-        def merge_state(options = {})
-          options[:should]  = true if options[:should].nil?  && should?
-          options[:inverse] = true if options[:inverse].nil? && inverse?
-          options
         end
 
     end

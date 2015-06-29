@@ -4,6 +4,7 @@ describe Stretchy::Clauses::WhereClause do
   let(:base) { Stretchy::Builders::ShellBuilder.new }
   let(:match_builder) { Stretchy::Builders::MatchBuilder }
   let(:where_builder) { Stretchy::Builders::WhereBuilder }
+  let(:params_filter) { Stretchy::Filters::ParamsFilter }
 
   context 'initializes with' do
     specify 'base' do
@@ -44,13 +45,8 @@ describe Stretchy::Clauses::WhereClause do
     end
 
     specify 'arbitrary json filter' do
-      expect_any_instance_of(where_builder).to receive(:add_params).with(
-        {
-          foo: {
-            bar: :baz
-          }
-        },
-        {}
+      expect_any_instance_of(where_builder).to receive(:add_filter).with(
+        params_filter, {}
       )
       subject.filter(foo: {bar: :baz})
     end

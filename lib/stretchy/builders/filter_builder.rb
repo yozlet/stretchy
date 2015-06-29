@@ -2,22 +2,22 @@ module Stretchy
   module Builders
     class FilterBuilder
 
-      attr_reader :terms, :ranges, :geos, :exists, :params, :inverse, :should
+      attr_reader :terms, :ranges, :geos, :exists, :filters, :inverse, :should
 
       def initialize
         @terms    = Hash.new { [] }
         @ranges   = Hash.new { [] }
         @geos     = Hash.new { [] }
-        @params   = []
+        @filters   = []
         @exists   = []
       end
 
       def any?
-        [@params, @terms, @ranges, @geos, @exists].any?(&:any?)
+        [@filters, @terms, @ranges, @geos, @exists].any?(&:any?)
       end
 
-      def add_params(params)
-        @params << Filters::ParamsFilter.new(params)
+      def add_filter(filter)
+        @filters << filter
       end
 
       def add_terms(field, terms)
@@ -39,13 +39,13 @@ module Stretchy
       end
 
       def to_filters
-        filters = @ranges.values + @geos.values
-        filters += @terms.map do |field, values|
+        _filters = @ranges.values + @geos.values
+        _filters += @terms.map do |field, values|
           Filters::TermsFilter.new(field, values)
         end
 
-        filters += @exists.map {|field| Filters::ExistsFilter.new(field) }
-        filters + params
+        _filters += @exists.map {|field| Filters::ExistsFilter.new(field) }
+        filters + _filters
       end
 
       private

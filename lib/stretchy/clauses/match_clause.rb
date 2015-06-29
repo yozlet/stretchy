@@ -21,6 +21,19 @@ module Stretchy
       end
 
       #
+      # Add arbitrary json as a query in the appropriate context.
+      # This can be used to add query types that are not currently
+      # supported by Stretchy to be used in the final query.
+      #
+      # @param params = {} [Hash] Query to be applied to the new state
+      # @option  options [true, false] :inverse (nil) Ignore query state and add to the `not` query
+      # @option  options [true, false] :should (nil) Ignore query state and add to the `should` query
+      def query(params = {}, options = {})
+        base.add_query(Queries::ParamsQuery.new(params), merge_state(options))
+        self
+      end
+
+      #
       # Specifies that values for this field should be
       # matched with a proximity boost, rather than as
       # a generic match query.
@@ -97,10 +110,7 @@ module Stretchy
       #
       def more_like(params = {}, options = {})
         query = Queries::MoreLikeThisQuery.new(params)
-        options[:inverse] = true if inverse?
-        options[:should]  = true if should?
-
-        base.add_query(query, options)
+        base.add_query(query, merge_state(options))
         self
       end
 

@@ -2,6 +2,8 @@ require 'spec_helper'
 
 describe Stretchy::Builders::WhereBuilder do
 
+  let(:filter) { Stretchy::Filters::ParamsFilter.new(foo: {bar: :baz})}
+
   it 'instantiates' do
     expect(subject).to be_a(described_class)
   end
@@ -50,7 +52,7 @@ describe Stretchy::Builders::WhereBuilder do
       end
 
       it 'accepts arbitrary json filters' do
-        subject.add_params(foo: {bar: :baz})
+        subject.add_filter(filter)
         expect(result[:foo]).to eq(bar: :baz)
       end
     end

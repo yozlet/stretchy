@@ -22,7 +22,7 @@ module Stretchy
                 :took, :shards, :total, :max_score, :total_pages] => :query_results
       delegate [:to_search] => :base
       delegate [:where, :range, :geo, :terms, :not, :filter] => :build_where
-      delegate [:match, :fulltext, :more_like] => :build_match
+      delegate [:match, :fulltext, :more_like, :query] => :build_match
 
       #
       # Generates a chainable query. The only required option for the
@@ -290,6 +290,12 @@ module Stretchy
 
         def hashify_params(params)
           params.is_a?(String) ? { '_all' => params } : params
+        end
+
+        def merge_state(options = {})
+          options[:should]  = true if options[:should].nil?  && should?
+          options[:inverse] = true if options[:inverse].nil? && inverse?
+          options
         end
 
     end

@@ -4,15 +4,17 @@
 
 Stretchy is a query builder for [Elasticsearch](https://www.elastic.co/products/elasticsearch). It helps you quickly construct the JSON to send to Elastic, which can get [rather complicated](http://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl.html).
 
-Stretchy is modeled after ActiveRecord's interface and architecture - query objects are immutable and chainable, which makes quickly building the right query and caching the results easy.
+Stretchy is modeled after ActiveRecord's interface and architecture - query objects are immutable and chainable, which makes quickly building the right query and caching the results easy. The goals are:
+
+1. **Intuitive** - If you've used ActiveRecord, Mongoid, or other query builders, Stretchy shouldn't be a stretch
+2. **Less Typing** - Queries built here should be _way_ fewer characters than building by hand
+3. **Easy** - Implementing the right algorithms for your search needs should be simple
 
 Stretchy is *not*:
 
-1. an integration with ActiveModel to help you index your data
-2. a way to manage Elasticsearch configuration
-3. a general-purpose Elasticsearch API client
-
-The first two are very application-specific. For any non-trivial app, the level of customization necessary will have you writing almost everything yourself. The last one is better handled by the [elasticsearch gem](http://www.rubydoc.info/gems/elasticsearch-api/).
+1. an integration with ActiveModel to help you index your data - too application specific
+2. a way to manage Elasticsearch configuration - see [waistband](https://github.com/taskrabbit/waistband)
+3. a general-purpose Elasticsearch API client - see the [elasticsearch gem](http://www.rubydoc.info/gems/elasticsearch-api/)
 
 ## Installation
 
@@ -32,7 +34,9 @@ Or install it yourself as:
 
 ## Usage
 
-Stretchy is still in early development, so it does not yet support the full feature set of the [Elasticsearch API](http://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl.html). It does support fairly basic queries in an ActiveRecord-ish style.
+Stretchy is still in early development, so it does not yet support the full feature set of the [Elasticsearch API](http://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl.html). There may be bugs, though we try for solid spec coverage. We may introduce breaking changes in minor versions, though we try to stick with [semantic versioning](http://semver.org).
+
+It does support fairly basic queries in an ActiveRecord-ish style.
 
 ### Documentation
 
@@ -61,9 +65,32 @@ end
 query = Stretchy.query(type: 'model_name')
 ```
 
+From here, you can chain the methods to build your desired query.
+
+## Chainable Query Methods
+
 From here, you can chain the following query methods:
 
-### Fulltext
+* [fulltext](#fulltext) - generic fulltext search with proximity relevance
+* [match](#match) - Elasticsearch match query
+* [query](#query) - Add arbitrary json fragment to the query section
+* [more_like](#more-like) - Get documents similar to a string or other documents
+* [where](#where) - Filter based on fields in the document
+* [terms](#terms) - Filter without analyzing strings or symbols
+* [filter](#filter) - Add arbitrary json fragment to the filter section
+* [range](#range) - Filter for a range of values
+* [geo](#geo-distance) - Filter on geo_point fields within a specified distance
+* [not](#not) - Get documents not matching passed conditions
+* [should](#should) - Increase document score for matching documents
+* [boost](#boost) - Increasing document score based on different factors
+* [near](#near) - Boost score based on how close a number / date / geo point is to an origin
+* [field](#field) - Boost based on the numeric value of the passed field
+* [random](#random) - Add a deterministic random factor to the document score
+* [explain](#explain) - Return score explanations along with documents
+* [fields](#fields) - Only return the specified fields
+* [page](#limit) - Limit, Offset, and Page to define which results to return
+
+### <a id="fulltext"></a>Fulltext
 
 ```ruby
 query = query.fulltext('Generic user-input phrase')
@@ -72,7 +99,7 @@ query = query.fulltext('Generic user-input phrase')
 
 Performs a query for the given string, either anywhere in the document or in specific fields. At least one of the terms must match, and the closer a document is to having the exact phrase, the higher its' score. See the Elasticsearch guide's [article on proximity scoring](https://www.elastic.co/guide/en/elasticsearch/guide/current/proximity-relevance.html) for more info on how this works.
 
-### Match
+### <a id="match"></a>Match
 
 ```ruby
 query = query.match('welcome to my web site')
@@ -82,7 +109,31 @@ query = query.match('welcome to my web site')
 
 Performs a match query for the given string. If given a hash, it will use a match query on the specified fields, otherwise it will default to `'_all'`. By default, a match query searches for any of the analyzed terms in the document, and scores them using Lucene's [practical scoring formula](https://www.elastic.co/guide/en/elasticsearch/guide/current/practical-scoring-function.html), which combines TF/IDF, the vector space model, and a few other niceties.
 
-### More Like
+### <a id="query"></a>Query
+
+```ruby
+query = query.match.query(
+          multi_match: {
+            query: 'super smash bros',
+            fields: ['developer.games', 'developer.bio']
+          }
+        )
+
+query = query.match.not.match.query(
+          multi_match: {
+            query: 'rez',
+            fields: ['developer.games', 'developer.bio']
+          }
+        )
+```
+
+Adds arbitrary JSON to the query section of the final query. If you want to use a query type not currently supported by Stretchy, you can call this method and pass in the requisite json fragment. You can also prefix this with `.not` and `.should` to add your json to those sections of the query instead.
+
+#### Caution
+
+Stretchy tries to merge together matches on the same fields to optimize the final query to be sent to Elastic, but will not try to optimize any json added via the `.query` method.
+
+### <a id="more-like"></a>More Like
 
 ```ruby
 query = query.more_like(ids: [1, 2, 3])
@@ -92,7 +143,7 @@ query = query.more_like(ids: [1, 2, 3])
 
 Finds documents similar to a list of input documents. You must pass in one of the `:ids`, `:docs` or `:like_text` parameters, but everything else is optional. This method accepts any of the params available in the [Elasticsearch more_like_this query](https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-mlt-query.html). It can also be chained with `.not` and `.should`.
 
-### Where
+### <a id="where"></a>Where
 
 ```ruby
 query = query.where(
@@ -114,7 +165,7 @@ If you pass a string or symbol for a field, it will be converted to a [Match Que
 
 To query for _exact_ matches against strings or symbols with underscores and punctuation intact, use the `.where.terms` clause.
 
-### Terms
+### <a id="terms"></a>Terms
 
 ```ruby
 query = query.where.terms(
@@ -125,7 +176,29 @@ query = query.where.terms(
 
 Sometimes you store values with punctuation, underscores, or other characters Elasticsearch would normally split into separate terms. If you want to query all comments that match a specific email address, you need to make sure that Elasticsearch doesn't analyze the query terms you send it before running the query. This clause allows you to do that.
 
-### Range
+### <a id="filter"></a>Filter
+
+```ruby
+query = query.filter(
+          geo_polygon: {
+              'person.location' => {
+                  points: [
+                      {lat: 40, lon: -70},
+                      {lat: 30, lon: -80},
+                      {lat: 20, lon: -90}
+                  ]
+              }
+          }
+        )
+```
+
+Adds arbitrary JSON to the filter section of the final query. If you want to use a filter type not currently supported by Stretchy, you can call this method and pass in the requisite json fragment. You can also prefix this with `.not` and `.should` to add your json to those sections of the filters instead.
+
+#### Caution
+
+Stretchy tries to merge together filters on the same fields to optimize the final query to be sent to Elastic, but will not try to optimize any json added via the `.filter` method.
+
+### <a id="range"></a>Range
 
 ```ruby
 query = query.range(:rating, min: 3, max: 5)
@@ -135,7 +208,7 @@ query = query.range(:rating, min: 3, max: 5)
 
 Only documents with the specified field, and within the specified range match. You can also pass in dates and times as ranges. While you could pass a normal ruby `Range` object to `.where`, this allows you to specify only a minimum or only a maximum. Range filters are inclusive by default, but you can also pass `:exclusive`, `:exclusive_min`, or `:exclusive_max`.
 
-### Geo Distance
+### <a id="geo-distance"></a>Geo Distance
 
 ```ruby
 query = query.geo('coords', distance: '20mi', lat: 35.0117, lng: 135.7683)
@@ -147,7 +220,7 @@ Filters for documents where the specified `geo_point` field is within the given 
 
 The field must be mapped as a `geo_point` field. See [Elasticsearch types](http://www.elastic.co/guide/en/elasticsearch/reference/current/mapping-geo-point-type.html) for more info.
 
-### Not
+### <a id="not"></a>Not
 
 ```ruby
 query = query.where.not(rating: 0)
@@ -157,7 +230,7 @@ query = query.where.not(rating: 0)
 
 Called after `where` or `match` will let you apply inverted filters. Any documents that match those filters will be excluded.
 
-### Should
+### <a id="should"></a>Should
 
 ```ruby
 query = query.should(name: 'Sarah', awesomeness: 1000).should.not(awesomeness: 0)
@@ -165,7 +238,7 @@ query = query.should(name: 'Sarah', awesomeness: 1000).should.not(awesomeness: 0
 
 Should filters work similarly to `.where`. Documents that do not match are still returned, but they have a lower relevancy score and will appear after documents that do match in the results. See Elastic's documentation for [BoolQuery](http://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-bool-query.html) and [BoolFilter](http://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-bool-filter.html) for more info.
 
-### Boost
+### <a id="boost"></a>Boost
 
 ```ruby
 query = query.boost.where(category: 3, weight: 100)
@@ -176,7 +249,7 @@ query = query.boost.where(category: 3, weight: 100)
 Boosts use a [Function Score Query](http://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-function-score-query.html) with filters to allow you to affect the score for the document. Each condition will be applied as a filter with an optional weight.
 
 
-### Near
+### <a id="near"></a>Near
 
 ```ruby
 query = query.boost.near(field: :published_at, origin: Time.now, scale: '5d')
@@ -189,7 +262,7 @@ The `:scale` param determines how quickly the value falls off. In the example ab
 
 See the [Function Score Query](http://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-function-score-query.html) section on Decay Functions for more info.
 
-### Field
+### <a id="field"></a>Field
 
 ```ruby
 query = query.boost.field(:popularity)
@@ -201,7 +274,7 @@ Boosts a document by a numeric value contained in the specified fields. You can 
 
 See the [Boosting By Popularity Guide](https://www.elastic.co/guide/en/elasticsearch/guide/current/boosting-by-popularity.html) and the [Field Value Factor documentation](http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/query-dsl-function-score-query.html#_field_value_factor) for more info.
 
-### Random
+### <a id="random"></a>Random
 
 ```ruby
 query = query.boost.random(user.id, 50)
@@ -209,23 +282,42 @@ query = query.boost.random(user.id, 50)
 
 Gives each document a randomized boost with a given seed and optional weight. This allows you to show slightly different result sets to different users, but show the same result set to that user every time.
 
-### Limit and Offset
+### <a id="fields"></a>Fields
+
+```ruby
+query = query.fields(:name, :email, :id)
+```
+
+Instead of returning the entire document, only return the specified fields.
+
+### <a id="limit"></a>Limit, Offset, and Page
 
 ```ruby
 query = query.limit(20).offset(1000)
+# or...
+query = query.page(50, per_page: 20)
 ```
 
-Works the same way as ActiveRecord's limit and offset methods - analogous to Elasticsearch's `from` and `size` parameters.
+Works the same way as ActiveRecord's limit and offset methods - analogous to Elasticsearch's `from` and `size` parameters. The `.page` method allows you to set both at once, and is compatible with the [Kaminari gem](https://github.com/amatsuda/kaminari).
 
-### Response
+### <a id="explain"></a>Explain
 
 ```ruby
-query.response
+query = query.explain.where()
 ```
 
-Executes the query, returns the raw JSON response from Elasticsearch and caches it. Use this to get at search API data not in the source documents.
+Tells Elasticsearch to return an explanation of the score for each document. See [the explain parameter](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-request-explain.html) for how this is used, and [the explain API](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-explain.html) for what the explanations will look like.
 
-### Results
+## Result Methods
+
+* [results](#results) - Result documents from this query
+* [ids](#ids) - Ids of result documents instead of the full source
+* [response](#response) - Raw response data from Elasticsearch
+* [total](#total) - Total number of matching documents
+* [explanations](#explanations) - Explanations for document scores
+* [per_page](#per_page) - Included with `.limit_value` for Kaminari compatibility
+
+### <a id="results"></a>Results
 
 ```ruby
 query.results
@@ -233,7 +325,7 @@ query.results
 
 Executes the query and provides the parsed json for each hit returned by Elasticsearch, along with `_index`, `_type`, `_id`, and `_score` fields.
 
-### Ids
+### <a id="ids"></a>Ids
 
 ```ruby
 query.ids
@@ -241,7 +333,15 @@ query.ids
 
 Provides only the ids for each hit. If your document ids are numeric (as is the case for many ActiveRecord integrations), they will be converted to integers.
 
-### Total
+### <a id="response"></a>Response
+
+```ruby
+query.response
+```
+
+Executes the query, returns the raw JSON response from Elasticsearch and caches it. Use this to get at search API data not in the source documents.
+
+### <a id="total"></a>Total
 
 ```ruby
 query.total
@@ -249,10 +349,31 @@ query.total
 
 Returns the total number of matches returned by the query - not just the current page. Makes plugging into [Kaminari](https://github.com/amatsuda/kaminari) a snap.
 
+### <a id="explanations"></a>Explanations
+
+```ruby
+query.explanations
+```
+
+Collect the `'_explanation'` field for each result, so you can easily see how the document scores were computed.
+
+### <a id="per-page"></a>Per Page, Limit Value, and Total Pages
+
+```ruby
+results = query.query_results
+results.per_page
+results.limit_value
+results.total_pages
+```
+
+Included in the Results object for Kaminari compatibility.
+
 ## Development
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `bin/console` for an interactive prompt that will allow you to experiment.
-
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release` to create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+After checking out the repo, run `bundle install` to install dependencies. Then, run `pry` for an interactive prompt that will allow you to experiment.
 
 ## Contributing
+
+For bugs and feature requests, please [open a new issue](https://github.com/hired/stretchy/issues/new).
+
+Please see [the CONTRIBUTING guide](https://github.com/hired/stretchy/blob/master/CONTRIBUTING.md) for guidelines on contributing to Stretchy.
