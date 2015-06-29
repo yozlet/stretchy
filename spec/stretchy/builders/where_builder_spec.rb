@@ -48,6 +48,11 @@ describe Stretchy::Builders::WhereBuilder do
         expect(results[:fieldname][:lon]).to eq(33)
         expect(results[:distance]).to eq('33mi')
       end
+
+      it 'accepts arbitrary json filters' do
+        subject.add_params(foo: {bar: :baz})
+        expect(result[:foo]).to eq(bar: :baz)
+      end
     end
 
     context 'multiple positive filters' do
@@ -63,7 +68,7 @@ describe Stretchy::Builders::WhereBuilder do
 
     context 'single negative filter' do
       let(:result) { subject.to_filter.to_search[:not] }
-      
+
       it 'excludes nils' do
         subject.add_param(:fieldname, nil)
         expect(result[:exists][:field]).to eq('fieldname')
@@ -73,7 +78,7 @@ describe Stretchy::Builders::WhereBuilder do
         subject.add_param(:fieldname, [1, 3], inverse: true)
         expect(result[:terms][:fieldname]).to eq([1, 3])
       end
-      
+
       it 'excludes a range' do
         subject.add_param(:fieldname, range_type.new(min: 27, max: 33), inverse: true)
         expect(result[:range][:fieldname][:gte]).to eq(27)
@@ -124,7 +129,7 @@ describe Stretchy::Builders::WhereBuilder do
 
       context 'with single should clause' do
         let(:result) { subject.to_filter.to_search[:bool][:should].first }
-        
+
         it 'accepts should terms' do
           subject.add_param(:fieldname, [1, 2], should: true)
           expect(result[:terms][:fieldname]).to eq([1, 2])
@@ -190,8 +195,8 @@ describe Stretchy::Builders::WhereBuilder do
         end
 
         it 'accepts not geo distance' do
-          subject.add_geo(:fieldname, '93km', 
-            geo_point: Stretchy::Types::GeoPoint.new(lat: 33, lng: 42), 
+          subject.add_geo(:fieldname, '93km',
+            geo_point: Stretchy::Types::GeoPoint.new(lat: 33, lng: 42),
             should: true,
             inverse: true
           )

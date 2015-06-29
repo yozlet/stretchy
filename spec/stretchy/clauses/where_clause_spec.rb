@@ -19,7 +19,7 @@ describe Stretchy::Clauses::WhereClause do
 
     specify 'geo field' do
       expect_any_instance_of(where_builder).to receive(:add_geo).with(
-        :geo_field, '27km', 
+        :geo_field, '27km',
         distance: '27km',
         lat: 34.3,
         lng: 28.2
@@ -41,6 +41,18 @@ describe Stretchy::Clauses::WhereClause do
         max:     99
       )
       subject.range(:range_field, max: 99)
+    end
+
+    specify 'arbitrary json filter' do
+      expect_any_instance_of(where_builder).to receive(:add_params).with(
+        {
+          foo: {
+            bar: :baz
+          }
+        },
+        {}
+      )
+      subject.filter(foo: {bar: :baz})
     end
 
     specify 'inverse options' do
