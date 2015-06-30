@@ -16,4 +16,16 @@ describe 'fulltext searching' do
     expect(res).to match_array([found['id']])
   end
 
+  it 'allows adding arbitrary json queries' do
+    res = subject.query(multi_match: { query: 'smash', fields: ['games.title', 'bio'] }).ids
+    expect(res).to include(found['id'])
+    expect(res).to_not include(not_found['id'])
+  end
+
+  it 'chains arbitrary json queries' do
+    res = subject.match.not.query(multi_match: { query: 'rez', fields: ['games.title', 'bio'] }).ids
+    expect(res).to include(found['id'])
+    expect(res).to_not include(not_found['id'])
+  end
+
 end

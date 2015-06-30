@@ -30,4 +30,10 @@ describe 'terms' do
     expect(res.ids).to_not include(not_found['id'])
   end
 
+  it 'finds by arbitrary json terms' do
+    res = subject.filter(term: { company: 'nintendo' })
+    expect(res.ids).to include(found['id'])
+    expect(res.ids).to_not include(not_found['id'])
+  end
+
 end

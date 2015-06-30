@@ -21,6 +21,10 @@ module Stretchy
         (must.any? && must_not.any?) || should.any? || should_not.any?
       end
 
+      def add_filter(filter, options = {})
+        builder_from_options(options).add_filter(filter)
+      end
+
       def add_param(field, param, options = {})
         case param
         when nil
@@ -106,11 +110,11 @@ module Stretchy
           elsif should_not.any?
             filters = should_not.to_filters
             if filters.count > 1
-              filters = Stretchy::Filters::OrFilter.new(filters) 
+              filters = Stretchy::Filters::OrFilter.new(filters)
             else
               filters = filters.first
             end
-            
+
             Stretchy::Filters::NotFilter.new(filters)
           else
             filters = should.to_filters
