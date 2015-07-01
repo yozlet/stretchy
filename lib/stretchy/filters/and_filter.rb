@@ -16,6 +16,8 @@ module Stretchy
       end
 
       def to_search
+        return filters.first.to_search unless filters.count > 1
+
         {
           and: @filters.map(&:to_search)
         }
