@@ -17,9 +17,8 @@ module Stretchy
       end
 
       def require_one!(*attrs)
-        rule = ::Validation::Rule::Required.new
         errors = {}
-        unless attrs.any? {|a| rule.valid_value?( send(a) ) }
+        unless attrs.any? {|a| Utils.is_empty?( send(a) ) }
           raise Errors::ValidationError.new(
             attrs.join(', ') => {
               rule: :require_one_of
@@ -51,7 +50,7 @@ module Stretchy
       end
 
       def json_attributes
-        self.attributes.reject{|key, val| val.nil? || (val.respond_to?(:empty?) && val.empty?) }
+        self.attributes.keep_if{|key, val| Utils.present?(val) }
       end
 
       module Constructor
@@ -72,6 +71,10 @@ module Stretchy
             include ::Validation
 
             class_exec(&block)
+
+            def inspect
+              "#{obj.class.name}.validator"
+            end
           end
         end
 

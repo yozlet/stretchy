@@ -5,6 +5,7 @@ module Stretchy
     class AndFilter < Base
 
       attribute :filters
+
       validations do
         rule :filters, :not_empty
         rule :filters, type: {classes: Filters::Base, array: true}

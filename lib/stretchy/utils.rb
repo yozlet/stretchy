@@ -1,3 +1,19 @@
+module Stretchy
+  module Utils
+
+    module_function
+
+    def is_empty?(value)
+      value.nil? || (value.respond_to?(:empty?) && value.empty?)
+    end
+
+    def present?(value)
+      !is_empty?(value)
+    end
+
+  end
+end
+
 require 'stretchy/utils/validation'
 require 'stretchy/utils/colorize'
 require 'stretchy/utils/logger'
