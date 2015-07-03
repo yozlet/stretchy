@@ -1,3 +1,5 @@
+require 'stretchy/utils/validation'
+
 module Stretchy
   module Nodes
     class Base
