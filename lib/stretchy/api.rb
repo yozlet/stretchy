@@ -1,0 +1,1 @@
+require 'stretchy/api/base'

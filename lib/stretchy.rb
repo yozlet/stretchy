@@ -14,6 +14,8 @@ require 'stretchy/queries'
 require 'stretchy/filters'
 require 'stretchy/queries'
 require 'stretchy/boosts'
+require 'stretchy/nodes'
+require 'stretchy/api'
 require 'stretchy/builders'
 require 'stretchy/results'
 require 'stretchy/clauses'
@@ -21,6 +23,12 @@ require 'stretchy/clauses'
 # {include:file:README.md}
 
 module Stretchy
-  extend Stretchy::Utils::Configuration
-  extend Stretchy::Utils::ClientActions
+  extend Utils::Configuration
+  extend Utils::ClientActions
+
+  module_function
+
+  def api(options = {})
+    Api::Base.new(options)
+  end
 end

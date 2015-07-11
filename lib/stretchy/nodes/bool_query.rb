@@ -1,12 +1,12 @@
-require 'stretchy/queries/base'
+require 'stretchy/nodes/base'
 
 module Stretchy
-  module Queries
+  module Nodes
     class BoolQuery < Base
 
-      attribute :must,      Array
-      attribute :must_not,  Array
-      attribute :should,    Array
+      attribute :must,      Array[Base]
+      attribute :must_not,  Array[Base]
+      attribute :should,    Array[Base]
 
       validations do
         rule :must,     type: {classes: Base, array: true}
@@ -14,12 +14,8 @@ module Stretchy
         rule :should,   type: {classes: Base, array: true}
       end
 
-      def initialize(options = {})
-        @must       = Array(options[:must])
-        @must_not   = Array(options[:must_not])
-        @should     = Array(options[:should])
+      def after_initialize(options = {})
         require_one! :must, :must_not, :should
-        validate!
       end
 
       def to_search

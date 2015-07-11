@@ -15,8 +15,8 @@ describe Stretchy do
 
   it 'passes from and size arguments correctly' do
     expect(Stretchy.client).to receive(:search).with(
-      index: Stretchy.index_name, 
-      type: FIXTURE_TYPE, 
+      index: Stretchy.index_name,
+      type: FIXTURE_TYPE,
       body: {:query=>{:match_all=>{}}},
       explain: true,
       size: 20,
@@ -30,6 +30,10 @@ describe Stretchy do
       from: 1,
       size: 20
     )
+  end
+
+  it 'constructs an api search' do
+    expect(Stretchy.api).to be_a(Stretchy::Api::Base)
   end
 
 end

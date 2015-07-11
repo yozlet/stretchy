@@ -9,7 +9,7 @@ module Stretchy
       end
 
       def validator
-        @validator ||= self.class.validator.new(self)
+        @validator ||= self.class.validator.new(self) if self.class.validator
       end
 
       def validate!
@@ -43,6 +43,7 @@ module Stretchy
       end
 
       def valid?
+        return true unless validator
         validator.valid?
       end
 

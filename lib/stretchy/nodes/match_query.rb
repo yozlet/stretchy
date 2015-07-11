@@ -1,7 +1,7 @@
-require 'stretchy/queries/base'
+require 'stretchy/nodes/base'
 
 module Stretchy
-  module Queries
+  module Nodes
     class MatchQuery < Base
 
       OPERATORS   = ['and', 'or']
@@ -27,7 +27,8 @@ module Stretchy
       end
 
       def after_initialize(params)
-        @min ||= params[:minimum_should_match]
+        @min    ||= params[:minimum_should_match]
+        @string ||= params[:query]
       end
 
       def option_attributes
@@ -48,6 +49,12 @@ module Stretchy
             @field => option_attributes,
           }
         }
+      end
+
+      def add_query(node, options = {})
+        BoolQuery.new(
+
+        )
       end
 
     end
