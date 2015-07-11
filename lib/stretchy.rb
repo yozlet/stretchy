@@ -17,6 +17,7 @@ require 'stretchy/boosts'
 require 'stretchy/builders'
 require 'stretchy/results'
 require 'stretchy/clauses'
+require 'stretchy/lispy'
 
 # {include:file:README.md}
 

@@ -2,16 +2,54 @@ module Stretchy
   module Lispy
     class Tree
 
-      def initialize(root = [], options = {})
+      def self.flatten(tree)
+        key, params, root = tree
+        # [:terms, {a: [:b]}]
+        case key
+        when :where
+          {
+            where: [params]
+          }
+        when :match
+          {
+            matches: [params] # [{a: :b}, {c: :d}, {a: :f}]
+          }
+        when :and
+          if root
+            merge(flatten(params), flatten(root))
+          else
+            flatten(params)
+          end
+        when :not
+          {
+            not: flatten(params)
+          }
+        end
+      end
+
+      def self.merge(a, b)
+        result = a.dup
+        b.each do |k, v|
+          if k == :not
+            result[:not] = merge(result[:not] || {}, v)
+          else
+            result[k] ||= []
+            result[k] = result[k] + v
+          end
+        end
+        result
+      end
+
+      def initialize(root, options = {})
         @root = root
       end
 
       def where(params = {}, options = {})
-        self.class.new [:and, [:terms, params]]
+        self.class.new [:and, [:where, params], @root]
       end
 
       def match(params = {}, options = {})
-        self.class.new [:and, [:match, params]]
+        self.class.new [:and, [:match, params], @root]
       end
 
       def not_match(params = {})
@@ -19,7 +57,7 @@ module Stretchy
       end
 
       def not_where(params = {}, options = {})
-        self.class.new [:and, [:not, [:terms, params]], @root]
+        self.class.new [:and, [:not, [:where, params]], @root]
       end
 
       def should_match(params = {})
@@ -27,11 +65,11 @@ module Stretchy
       end
 
       def should_where(params = {}, options = {})
-        self.class.new [:and, [:should, [:terms, params]], @root]
+        self.class.new [:and, [:should, [:where, params]], @root]
       end
 
       def should_not_where(params = {}, options = {})
-        self.class.new [:and, [:not, [:should, [:terms, params]]], @root]
+        self.class.new [:and, [:not, [:should, [:where, params]]], @root]
       end
 
       def should_not_match(params = {}, options = {})
@@ -42,70 +80,13 @@ module Stretchy
         [:boost, [:terms, params]]
       end
 
-      def to_search
-        compile(@root)
+      def flatten
+        self.class.flatten(@root)
       end
 
-      private
-
-        def compile(tree)
-          key, params, root = tree
-
-          # [:terms, {a: [:b]}]
-          case key
-          when :terms
-            {
-              filters: Array(params)
-            }
-          when :match
-            {
-              matches: Array(params) # [{a: :b}, {c: :d}, {a: :f}]
-            }
-          when :and
-            compile(params).recursive_merge(root)
-          when :not
-            inner_key, inner_tree = params
-            {
-              not: compile(inner_tree)
-            }
-          when :should
-            {
-              should: compile(inner_tree)
-            }
-          when :should_not
-
-          end
-
-          {
-            filters: [
-              {
-                a: :b
-              },
-              {
-                c: :d
-              }
-            ],
-            matches: {
-              {d: :e}
-            },
-
-            # deal with this in compile_2 method
-            not: {
-              matches: {
-
-                },
-                fitlers: {
-
-                }
-            }
-
-            terms_should: {
-              matches: [
-                {a: :b}
-              ]
-            }
-          }
-        end
+      def to_search
+        # method_to_tranform_flattend_tree_to_elastic_json(flatten)
+      end
 
     end
   end

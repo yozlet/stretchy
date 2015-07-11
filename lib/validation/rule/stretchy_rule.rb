@@ -23,7 +23,7 @@ module Validation
       end
 
       def is_empty?(value)
-        value.nil? || (value.respond_to?(:empty?) && value.empty?)
+        Stretchy::Utils.is_empty?(value)
       end
 
       def required?
