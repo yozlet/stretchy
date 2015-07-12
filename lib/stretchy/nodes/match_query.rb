@@ -26,6 +26,10 @@ module Stretchy
         rule :max,       type: Numeric
       end
 
+      def node_type
+        :query
+      end
+
       def after_initialize(params)
         @min    ||= params[:minimum_should_match]
         @string ||= params[:query]
@@ -52,9 +56,9 @@ module Stretchy
       end
 
       def add_query(node, options = {})
-        BoolQuery.new(
-
-        )
+        replace_node(self, BoolQuery.new(
+          must: [self, node]
+        ))
       end
 
     end

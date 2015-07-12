@@ -3,7 +3,7 @@ module Stretchy
     module Validation
 
       def self.included(base)
-        base.send(:include, Virtus.model)
+        base.send(:include, Virtus.model(nullify_blank: true))
         base.class_exec { include Constructor }
         base.extend(ClassMethods)
       end
@@ -51,8 +51,8 @@ module Stretchy
         validator.errors
       end
 
-      def json_attributes
-        self.attributes.reject{|key, val| val.nil? || (val.respond_to?(:empty?) && val.empty?) }
+      def json_attributes(options = {})
+        self.attributes.reject{|key, val| Array(options[:reject]).include?(key) || Utils.is_empty?(val) }
       end
 
       module Constructor
