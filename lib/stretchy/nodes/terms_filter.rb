@@ -1,7 +1,7 @@
-require 'stretchy/filters/base'
+require 'stretchy/nodes/base'
 
 module Stretchy
-  module Filters
+  module Nodes
     class TermsFilter < Base
 
       attribute :field
@@ -11,6 +11,10 @@ module Stretchy
         rule :field, field: { required: true }
         rule :terms, type: {classes: [Numeric, Time, String, Symbol, TrueClass, FalseClass], array: true}
         rule :terms, :not_empty
+      end
+
+      def node_type
+        :filter
       end
 
       def initialize(field, terms)
@@ -25,6 +29,13 @@ module Stretchy
             @field => @terms
           }
         }
+      end
+
+      def add_query(node, options = {})
+        replace_node(self, FilteredQuery.new(
+          query: node,
+          filter: self
+        ))
       end
     end
   end

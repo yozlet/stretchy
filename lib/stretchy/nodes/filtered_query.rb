@@ -13,13 +13,6 @@ module Stretchy
         rule :filter, type: {classes: Filters::Base}
       end
 
-      def initialize(options = {})
-        @query  = options[:query]
-        @filter = options[:filter]
-        require_one! :query, :filter
-        validate!
-      end
-
       def to_search
         json = {}
         json[:query]  = @query.to_search  if query
