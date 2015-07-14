@@ -1,5 +1,4 @@
 require 'stretchy/queries/base'
-require 'stretchy/queries/filtered_query'
 require 'stretchy/queries/function_score_query'
 require 'stretchy/queries/match_all_query'
 require 'stretchy/queries/more_like_this_query'

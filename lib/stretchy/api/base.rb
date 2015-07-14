@@ -22,8 +22,15 @@ module Stretchy
       def match(string_or_params, options = {})
         hashify_params(string_or_params).each do |field, query|
           @current = current.add(
-            Nodes::MatchQuery.new(field: field, string: query, parent: current)
+            Nodes::MatchQuery.new(field: field, string: query.split(' '), parent: current)
           )
+        end
+        self
+      end
+
+      def where(params = {}, options = {})
+        params.each do |field, terms|
+          @current = current.add(terms_node(field, terms))
         end
         self
       end
@@ -43,6 +50,19 @@ module Stretchy
             string_or_hash
           else
             { '_all' => string_or_hash }
+          end
+        end
+
+        def terms_node(field, val)
+          case val
+          when nil
+            raise 'Nil terms not supported yet'
+          when Hash
+            raise 'Hash terms not supported yet'
+          when Range
+            raise 'Range terms not supported yet'
+          else
+            Nodes::TermsFilter.new(field: field, terms: [val])
           end
         end
 

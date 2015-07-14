@@ -25,5 +25,18 @@ module Stretchy
       subject.match('_all' => 'Masahiro', title: 'Developer')
     end
 
+    it 'can search by terms' do
+      subject.where(is_sakurai: true)
+    end
+
+    it 'can search by multiple terms' do
+      subject.where(is_sakurai: true, salary: 900000)
+      pp subject.to_search
+    end
+
+    it 'can search by query and filter' do
+      subject.where(is_sakurai: true).match(title: 'Developer')
+    end
+
   end
 end

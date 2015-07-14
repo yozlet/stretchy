@@ -17,12 +17,6 @@ module Stretchy
         :filter
       end
 
-      def initialize(field, terms)
-        @field = field
-        @terms = Array(terms)
-        validate!
-      end
-
       def to_search
         {
           terms: {
@@ -36,6 +30,24 @@ module Stretchy
           query: node,
           filter: self
         ))
+      end
+
+      def add_filter(node, options = {})
+        if node.is_a?(self.class) && node.field == field
+          @terms += Array(node.terms)
+          @terms =  @terms.compact.uniq
+          self
+        else
+          replace_node(self, BoolFilter.new(
+            must: NodeCollection.new(nodes: [self, node])
+          ))
+        end
+      end
+
+      def combine_with(node, options = {})
+        if node.is_a?(self.class) && node.field == field
+          @terms += node.terms
+        end
       end
     end
   end

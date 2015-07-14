@@ -6,6 +6,7 @@ module Stretchy
         base.send(:include, Virtus.model(nullify_blank: true))
         base.class_exec { include Constructor }
         base.extend(ClassMethods)
+        base.extend(Forwardable)
       end
 
       def validator

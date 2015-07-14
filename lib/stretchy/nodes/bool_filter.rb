@@ -1,33 +1,29 @@
-require 'stretchy/filters/base'
+require 'stretchy/nodes/base'
+require 'stretchy/nodes/node_collection'
 
 module Stretchy
-  module Filters
+  module Nodes
     class BoolFilter < Base
 
-      attribute :must, Array[Base]
-      attribute :must_not, Array[Base]
-      attribute :should, Array[Base]
-
-      validations do
-        rule :must,     type: {classes: Base, array: true}
-        rule :must_not, type: {classes: Base, array: true}
-        rule :should,   type: {classes: Base, array: true}
-      end
-
-      def initialize(options = {})
-        @must     = Array(options[:must])
-        @must_not = Array(options[:must_not])
-        @should   = Array(options[:should])
-        require_one!(:must, :must_not, :should)
-        validate!
-      end
+      attribute :must,      NodeCollection, default: NodeCollection.new
+      attribute :must_not,  NodeCollection, default: NodeCollection.new
+      attribute :should,    NodeCollection, default: NodeCollection.new
 
       def to_search
         json = {}
-        json[:must]     = @must.map(&:to_search)      if @must.any?
-        json[:must_not] = @must_not.map(&:to_search)  if @must_not.any?
-        json[:should]   = @should.map(&:to_search)    if @should.any?
+        json[:must]     = must.to_search      if must.any?
+        json[:must_not] = must_not.to_search  if must_not.any?
+        json[:should]   = should.to_search    if should.any?
         { bool: json }
+      end
+
+      def add_filter(node, options = {})
+        if options[:context] == :should_not
+          should.convert_to_bool(klass: self.class, context: :must_not)
+        else
+          send(options[:context]).add_node(node)
+        end
+        self
       end
     end
   end

@@ -8,7 +8,7 @@ module Stretchy
       MATCH_TYPES = ['phrase', 'phrase_prefix']
 
       attribute :field,     String, default: '_all'
-      attribute :string,    String
+      attribute :string,    Array[String]
       attribute :operator,  String
       attribute :type,      String
       attribute :slop,      Integer
@@ -16,14 +16,14 @@ module Stretchy
       attribute :max,       Float
 
       validations do
-        rule :field,     field: { required: true }
-        rule :string,    type: String
-        rule :string,   :required
+        rule :field,     field:     { required: true }
+        rule :string,    type:      {classes: String, array: true}
+        rule :string,    :required
         rule :operator,  inclusion: {in: OPERATORS}
         rule :type,      inclusion: {in: MATCH_TYPES}
-        rule :slop,      type: Numeric
-        rule :min,      :min_should_match
-        rule :max,       type: Numeric
+        rule :slop,      type:      Numeric
+        rule :max,       type:      Numeric
+        rule :min,       :min_should_match
       end
 
       def node_type
@@ -38,7 +38,7 @@ module Stretchy
       def option_attributes
         return @opts if @opts
         @opts = {}
-        @opts[:query]                = @string
+        @opts[:query]                = @string.join(' ')
         @opts[:type]                 = @type       if @type
         @opts[:operator]             = @operator   if @operator
         @opts[:minimum_should_match] = @min        if @min
@@ -56,8 +56,21 @@ module Stretchy
       end
 
       def add_query(node, options = {})
-        replace_node(self, BoolQuery.new(
-          must: [self, node]
+        if node.is_a?(self.class) && node.field == field
+          @string += Array(node.string)
+          @string = @string.compact.uniq
+          self
+        else
+          replace_node(self, BoolQuery.new(
+            must: [self, node]
+          ))
+        end
+      end
+
+      def add_filter(node, options = {})
+        replace_node(self, FilteredQuery.new(
+          query: self,
+          filter: node
         ))
       end
 

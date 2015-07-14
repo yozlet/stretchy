@@ -15,9 +15,18 @@ module Stretchy
         if query
           @query = query.add_query(node, options)
         else
-          @query = node
+          @query        = node
+          @query.parent = self
         end
-        @query.parent = self
+        @query
+      end
+
+      def add_filter(node, options = {})
+        if query
+          @query = query.add_filter(node, options)
+        else
+          @query = FilteredQuery.new(parent: self, filter: node)
+        end
         @query
       end
 
