@@ -1,11 +1,12 @@
 require 'json'
 require 'stretchy/utils/colorize'
+require 'stretchy/utils/poro'
 
 module Stretchy
   module Utils
     class Logger
 
-      include Validation
+      include Poro
 
       LEVELS = [:silence, :debug, :info, :warn, :error, :fatal]
 
@@ -36,7 +37,7 @@ module Stretchy
       def log(msg_or_obj, _level = nil, _color = nil)
         _level ||= level
         _color ||= color
-        
+
         return if _level == :silence
         output = nil
 

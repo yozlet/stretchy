@@ -1,0 +1,5 @@
+require 'stretchy/nodes/boosts/base'
+require 'stretchy/nodes/boosts/field_decay_boost'
+require 'stretchy/nodes/boosts/field_value_boost'
+require 'stretchy/nodes/boosts/filter_boost'
+require 'stretchy/nodes/boosts/random_boost'

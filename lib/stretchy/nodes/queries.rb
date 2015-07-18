@@ -1,0 +1,8 @@
+require 'stretchy/nodes/queries/base'
+require 'stretchy/nodes/queries/bool_query'
+require 'stretchy/nodes/queries/filtered_query'
+require 'stretchy/nodes/queries/function_score_query'
+require 'stretchy/nodes/queries/match_all_query'
+require 'stretchy/nodes/queries/match_query'
+require 'stretchy/nodes/queries/more_like_this_query'
+require 'stretchy/nodes/queries/params_query'
