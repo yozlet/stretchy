@@ -13,19 +13,8 @@ module Stretchy
           rule :lon, :longitude
         end
 
-        attr_reader :lat, :lon
-
-        def initialize(options = {})
-          if options.is_a?(self.class)
-            @lat = options.lat
-            @lon = options.lon
-          else
-            @lat = options[:lat] || options[:latitude]
-            @lon = options[:lng] || options[:lon] ||
-                   options[:longitude]
-          end
-
-          validate!
+        def after_initialize(options = {})
+          @lon ||= options[:lng] || options[:longitude]
         end
 
         def to_search

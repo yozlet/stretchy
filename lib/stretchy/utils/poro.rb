@@ -1,3 +1,5 @@
+require 'stretchy/errors'
+
 module Stretchy
   module Utils
     module Poro
@@ -18,7 +20,7 @@ module Stretchy
       end
 
       def require_one!(*attrs)
-        unless attrs.any? {|a| Utils.is_empty?(a) }
+        unless attrs.any? {|a| Utils.is_empty?(send(a)) }
           raise Errors::ValidationError.new(
             attrs.join(', ') => {
               rule: :require_one_of
@@ -29,7 +31,7 @@ module Stretchy
       end
 
       def require_only_one!(*attrs)
-        if attrs.select {|a| Utils.is_empty?(a) }.count > 1
+        if attrs.select {|a| Utils.is_empty?(send(a)) }.count > 1
           raise Errors::ValidationError.new(
             attrs.join(', ') => {
               rule: :require_only_one

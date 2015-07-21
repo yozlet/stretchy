@@ -7,6 +7,7 @@ require 'virtus'
 require 'validation'
 
 require 'stretchy_validations'
+require 'stretchy/api'
 require 'stretchy/errors'
 require 'stretchy/nodes'
 require 'stretchy/results'

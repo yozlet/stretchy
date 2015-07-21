@@ -8,8 +8,8 @@ module Stretchy
         attribute :filters, Array[Base]
 
         validations do
-          rule :filters, type: { classes: Base, array: true }
-          rule :filters, :not_empty
+          rule :filter, type: { classes: Base, array: true }
+          rule :filter, :not_empty
         end
 
         def to_search

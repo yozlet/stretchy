@@ -10,6 +10,12 @@ module Stretchy
     def present?(value)
       !is_empty?(value)
     end
+
+    def slice(hash, *keys)
+      hash.select {|key, val|
+        keys.include?(key)
+      }
+    end
   end
 end
 

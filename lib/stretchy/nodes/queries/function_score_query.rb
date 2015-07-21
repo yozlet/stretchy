@@ -20,31 +20,67 @@ module Stretchy
 
         validations do
           rule :functions,  type: {classes: Boosts::Base, array: true}
-          rule :query,      type: {classes: Base}
-          rule :filter,     type: {classes: Filters::Base}
           rule :score_mode, inclusion: {in: SCORE_MODES}
           rule :boost_mode, inclusion: {in: BOOST_MODES}
-          rule :min_score,  type: {classes: Numeric}
-          rule :max_boost,  type: {classes: Numeric}
-          rule :boost,      type: {classes: Numeric}
+          rule :query,      type: Base
+          rule :filter,     type: Filters::Base
+          rule :min_score,  type: Numeric
+          rule :max_boost,  type: Numeric
+          rule :boost,      type: Numeric
         end
 
         def to_search
-          json = {}
-          attributes.each do |field, value|
-            json[field] = value if value
-          end
-          json[:functions]  = @functions.map(&:to_search)
-          if @query
-            json[:query]    = @query.to_search
-          elsif @filter
-            json[:filter]   = @filter.to_search
-          else
-            json[:query]    = Stretchy::Queries::MatchAllQuery.new.to_search
+          json              = json_attributes
+          json[:functions]  = functions.map(&:to_search)
+          if query
+            json[:query]    = query.to_search
+            json.delete(:filter)
+          elsif filter
+            json[:filter]   = filter.to_search
+            json.delete(:query)
           end
 
           { function_score: json }
         end
+
+        def add_query(node, options = {})
+          if filter_only?
+            filtered_query.add_query(node, options)
+          elsif query.respond_to?(:add_query)
+            @query = query.add_query(node)
+          else
+            @query = node
+          end
+          self
+        end
+
+        def add_filter(node, options = {})
+          if query.respond_to?(:add_filter)
+            @query = query.add_filter(node)
+          elsif filter.respond_to?(:add_filter)
+            @filter = filter.add_filter(node)
+          elsif
+            @filter = node
+          end
+          self
+        end
+
+        def add_boost(node, options = {})
+          functions << node
+        end
+
+        private
+
+          def filter_only?
+            filter && !query
+          end
+
+          def filtered_query
+            @query  = FilteredQuery.new(query: node, filter: filter)
+            @filter = nil
+            query
+          end
+
       end
     end
   end

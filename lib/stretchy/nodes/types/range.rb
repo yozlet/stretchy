@@ -17,35 +17,8 @@ module Stretchy
           rule :exclusive_max, inclusion: {in: [true, false]}
         end
 
-        def initialize(opts_or_range = {}, options = {})
-
-          case opts_or_range
-          when ::Range
-            @min = opts_or_range.min
-            @max = opts_or_range.max
-            @exclusive_min = !!(options[:exclusive_min] || options[:exclusive])
-            @exclusive_max = !!(options[:exclusive_max] || options[:exclusive])
-            @inverse       = !!options[:inverse]
-            @should        = !!options[:should]
-          when ::Hash
-            opts = options.merge(opts_or_range)
-            @min = opts[:min]
-            @max = opts[:max]
-            @exclusive_min = !!(opts[:exclusive_min] || opts[:exclusive])
-            @exclusive_max = !!(opts[:exclusive_max] || opts[:exclusive])
-            @inverse       = !!opts[:inverse]
-            @should        = !!opts[:should]
-          when Range
-            @min = opts_or_range.min
-            @max = opts_or_range.max
-            @exclusive_min = opts_or_range.exclusive_min
-            @exclusive_max = opts_or_range.exclusive_max
-          else
-            raise Stretchy::Errors::ContractError.new("Ranges must be a range or a hash - found #{options.class.name}")
-          end
-
-          require_one! :min, :max
-          validate!
+        def after_initialize(options = {})
+          require_one!(:min, :max)
         end
 
         def empty?

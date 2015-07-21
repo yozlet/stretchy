@@ -11,7 +11,7 @@ module Stretchy
 
         validations do
           rule :field, field: { required: true }
-          rule :range, type: {classes: Types::Range}
+          rule :range, type:  Types::Range
         end
 
         def to_search

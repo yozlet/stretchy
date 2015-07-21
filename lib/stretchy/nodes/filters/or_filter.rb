@@ -11,6 +11,10 @@ module Stretchy
           rule :filters, type: {classes: Base, array: true}
         end
 
+        def add_filter(node, options = {})
+          @filters << node
+        end
+
         def to_search
           {
             or: @filters.map(&:to_search)

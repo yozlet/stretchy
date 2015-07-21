@@ -6,9 +6,13 @@ module Stretchy
       class AndFilter < Base
 
         attribute :filters
+
         validations do
-          rule :filters, :not_empty
           rule :filters, type: {classes: Filters::Base, array: true}
+        end
+
+        def add_filter(node, options = {})
+          @filters << node
         end
 
         def to_search
