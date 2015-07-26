@@ -2,12 +2,11 @@ module Stretchy
   class LogicTree
 
     extend Forwardable
-    delegate [:kind, :json, :context] => :node
+    delegate [:json, :context] => :node
 
-    attr_reader :must, :must_not, :should, :kind
+    attr_reader :must, :must_not, :should
 
-    def initialize(kind, nodes = [])
-      @kind     = kind
+    def initialize(nodes = [])
       @must     = []
       @must_not = []
       @should   = []
@@ -25,6 +24,10 @@ module Stretchy
       end
     end
 
+    def nodes
+      must + must_not + should
+    end
+
     private
 
       def bool_node
@@ -37,7 +40,7 @@ module Stretchy
       end
 
       def should_json
-        node_json = self.class.new(kind, should).json
+        node_json = self.class.new(should).json
         node_json = [node_json] unless node_json.is_a?(Array)
         node_json
       end

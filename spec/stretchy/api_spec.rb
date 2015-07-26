@@ -90,5 +90,22 @@ module Stretchy
       expect(json).to eq(results)
     end
 
+    it 'does a boost by filter' do
+      results = {:query=>
+        {:function_score=>
+        {:functions=>[{:term=>{:url_slug=>"masahiro-sakurai"}}],
+        :query=>{:match=>{:name=>"sakurai"}}}}}
+
+      json = subject.fulltext(name: 'sakurai')
+                    .boost.where(url_slug: 'masahiro-sakurai')
+                    .json
+      expect(results).to eq(json)
+    end
+
+    it 'does a match phrase query' do
+      json = subject.fulltext(name: 'sakurai', meta: {type: :phrase, operator: :and}).json
+      pp [:meta, json]
+    end
+
   end
 end

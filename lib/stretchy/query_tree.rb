@@ -2,8 +2,7 @@ module Stretchy
   class QueryTree
 
     extend Forwardable
-
-    delegate [:kind, :json, :context] => :node
+    delegate [:json, :context] => :node
 
     attr_reader :queries, :filters, :boosts
 
@@ -16,11 +15,17 @@ module Stretchy
     end
 
     def node
-      @node ||= if filters.any?
+      @node ||= if boosts.any?
+        function_score_query
+      elsif filters.any?
         filtered_query
       else
-        LogicTree.new(:bool_query, queries)
+        LogicTree.new(queries)
       end
+    end
+
+    def nodes
+      queries + filters + boosts
     end
 
     private
@@ -40,14 +45,29 @@ module Stretchy
       def filtered_query
         filtered_json = {}
         if queries.any?
-          filtered_json[:query] = LogicTree.new(:bool_query, queries).json
+          filtered_json[:query] = LogicTree.new(queries).json
         end
 
         if filters.any?
-          filtered_json[:filter] = LogicTree.new(:bool_filter, filters).json
+          filtered_json[:filter] = LogicTree.new(filters).json
         end
 
         Node.new({}, filtered: filtered_json)
+      end
+
+      def function_score_query
+        function_json = {}
+        function_json[:functions] = @boosts.map(&:json)
+
+        if filters.any? && queries.empty?
+          function_json[:filter] = LogicTree.new(filters).json
+        elsif queries.any? && filters.empty?
+          function_json[:query] = LogicTree.new(queries).json
+        else
+          function_json[:query] = filtered_query.json
+        end
+
+        Node.new({}, function_score: function_json)
       end
 
   end
