@@ -10,9 +10,7 @@ require 'stretchy_validations'
 
 require 'stretchy/api'
 require 'stretchy/factory'
-require 'stretchy/logic_tree'
-require 'stretchy/node'
-require 'stretchy/query_tree'
+require 'stretchy/nodes'
 
 require 'stretchy/boosts'
 require 'stretchy/builders'

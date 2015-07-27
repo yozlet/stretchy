@@ -8,14 +8,14 @@ module Stretchy
       params.map do |field, values|
         case values
         when Range
-          Node.new(context, field => meta.merge(
+          Nodes::Node.new(context, field => meta.merge(
             gte: values.min,
             lte: values.max
           ))
         when Array
-          Node.new(context, terms: meta.merge(field => values))
+          Nodes::Node.new(context, terms: meta.merge(field => values))
         else
-          Node.new(context, term: meta.merge(field => values))
+          Nodes::Node.new(context, term: meta.merge(field => values))
         end
       end
     end
@@ -23,25 +23,20 @@ module Stretchy
     def match_nodes(context, params = {}, meta = {})
       meta = params.delete(:meta) || meta if params.is_a?(Hash)
       if params.is_a?(String)
-        [Node.new(context, match: meta.merge(_all: params))]
+        [Nodes::Node.new(context, match: meta.merge(_all: params))]
       else
         params.map do |field, values|
           case values
           when Array
-            Node.new(
+            Nodes::Node.new(
               context.merge(should: true),
-              terms: meta.merge(field => values.join(' '))
+              terms: {field => meta.merge(query: values.join(' '))}
             )
           else
-            Node.new(context, match: meta.merge(field => values))
+            Nodes::Node.new(context, match: {field => meta.merge(query: values)})
           end
         end
       end
-    end
-
-    def dis_max(context, node, params = {})
-      meta = params.delete(:meta) || {}
-      Node.new(context, dis_max: meta.merge(queries: [node.json, Factory.match_nodes(context, params, meta).json]))
     end
 
   end

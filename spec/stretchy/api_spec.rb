@@ -28,7 +28,7 @@ module Stretchy
                     .json
       expect(json).to eq(
         query: { filtered: {
-          query: { match: { name: 'sakurai' }},
+          query: { match: { name: { query: 'sakurai'} }},
           filter: { bool: {
             must: [
               {term: {url_slug:   'masahiro-sakurai'}},
@@ -56,8 +56,8 @@ module Stretchy
     it 'does a query, not query, not filter' do
       result = { query: { filtered: {
         query: { bool: {
-          must: [{match: { name: 'sakurai' }}],
-          must_not: [{match: {name: 'mizuguchi'}}]
+          must: [{match: { name: {query: 'sakurai'} }}],
+          must_not: [{match: {name: {query: 'mizuguchi'}}}]
         }},
         filter: { bool: {
           must_not: [{term: {url_slug: 'tetsuya-mizuguchi'}}]
@@ -72,13 +72,13 @@ module Stretchy
     end
 
     it 'does a should query' do
-      result = { query: { bool: { should: [ {match: {name: 'sakurai'}}]}}}
+      result = { query: { bool: { should: [ {match: {name: {query: 'sakurai'}}}]}}}
       json = subject.fulltext.should(name: 'sakurai').json
       expect(json).to eq(result)
     end
 
     it 'handles complex stuff' do
-      results = {:query=>{:filtered=>{:query=>{:bool=>{:must=>[{:match=>{:name=>"sakurai"}}], :must_not=>[{:match=>{:name=>"mizuguchi"}}], :should=>[{:match=>{:company=>"nintendo"}}]}}, :filter=>{:bool=>{:must=>[{:term=>{:url_slug=>"masahiro-sakurai"}}], :must_not=>[{:term=>{:url_slug=>"tetsuya-mizuguchi"}}], :should=>[{:term=>{:is_sakurai=>true}}]}}}}}
+      results = {:query=>{:filtered=>{:query=>{:bool=>{:must=>[{:match=>{:name=>{query: "sakurai"}}}], :must_not=>[{:match=>{:name=>{query: "mizuguchi"}}}], :should=>[{:match=>{:company=>{query: "nintendo"}}}]}}, :filter=>{:bool=>{:must=>[{:term=>{:url_slug=>"masahiro-sakurai"}}], :must_not=>[{:term=>{:url_slug=>"tetsuya-mizuguchi"}}], :should=>[{:term=>{:is_sakurai=>true}}]}}}}}
 
       json = subject.fulltext(name: 'sakurai')
              .fulltext.not(name: 'mizuguchi')
@@ -94,7 +94,7 @@ module Stretchy
       results = {:query=>
         {:function_score=>
         {:functions=>[{:term=>{:url_slug=>"masahiro-sakurai"}}],
-        :query=>{:match=>{:name=>"sakurai"}}}}}
+        :query=>{:match=>{:name=>{query: "sakurai"}}}}}}
 
       json = subject.fulltext(name: 'sakurai')
                     .boost.where(url_slug: 'masahiro-sakurai')
@@ -104,7 +104,36 @@ module Stretchy
 
     it 'does a match phrase query' do
       json = subject.fulltext(name: 'sakurai', meta: {type: :phrase, operator: :and}).json
-      pp [:meta, json]
+      expect(json).to eq(query: { match: { name: { query: 'sakurai', type: :phrase, operator: :and}}})
+    end
+
+    it 'does an or query' do
+      result = {:query=>{:filtered=>{:filter=>{:or=>
+       [{:term=>{:url_slug=>"masahiro-sakurai"}},
+        {:term=>{:url_slug=>"tetsuya-mizuguchi"}}]}}}}
+      json = subject.where(url_slug: 'masahiro-sakurai').or(url_slug: 'tetsuya-mizuguchi').json
+      expect(json).to eq(result)
+    end
+
+    it 'ors a query with a filter' do
+      json = subject.where(url_slug: 'masahiro-sakurai').or.fulltext(name: 'sakurai').json
+      pp [:filter_query_or, json]
+    end
+
+    it 'does multiple or conditions' do
+      json = subject.where(url_slug: 'masahiro-sakurai')
+                    .or(salary: 900000)
+                    .or(is_sakurai: true)
+                    .json
+      pp [:multiple_or, json]
+    end
+
+    it 'ands together conditions' do
+      json = subject.where(url_slug: 'masahiro-sakurai')
+                    .or.fulltext(name: 'sakurai')
+                    .and.where(salary: 900000)
+                    .json
+      pp [:or_and, json]
     end
 
   end
